@@ -1,0 +1,1381 @@
+# NEXORA — PHASE 1 MASTER BUILD PROMPT
+## Build an AI-Powered Career Intelligence and Adaptive Learning Platform from Scratch
+
+**Project Name:** NEXORA  
+**Tagline:** Know Your Skills. Discover Your Gaps. Engineer Your Future.  
+**Gamified Learning Experience:** NEXORA PLAY — Learn. Play. Prove.  
+**Development Platform:** Google AI Studio  
+**AI Model:** Google Gemini  
+**Project Type:** Full-Stack AI-Powered Web Application  
+**Primary Users:** University Students and Career Learners
+
+---
+
+# 1. YOUR ROLE
+
+Act as a principal software architect, senior full-stack developer, AI engineer, database architect, product designer and educational technology specialist.
+
+Your task is to design and build NEXORA from scratch as a functional, scalable and professional web application.
+
+Do not create a simple landing page, static dashboard or UI-only prototype.
+
+Build a connected application with working authentication, persistent data, backend logic, AI integration, skill intelligence, career analysis, adaptive learning and gamification.
+
+You must think like an experienced software engineering team.
+
+Prioritize:
+- Functional correctness.
+- Clean architecture.
+- Minimal unnecessary code.
+- Strong security.
+- Consistent UI/UX.
+- Reliable AI integration.
+- Maintainable components.
+- Efficient development.
+
+Do not sacrifice functionality for visual appearance.
+
+---
+
+# 2. PRODUCT VISION
+
+NEXORA is an AI-powered career intelligence platform that helps students understand their actual technical competencies, discover career-related skill gaps and build personalized learning journeys.
+
+The central principle is:
+
+**A skill is not simply what a student claims to know. It is what the student can demonstrate through evidence.**
+
+NEXORA must connect:
+
+1. Academic Knowledge.
+2. Demonstrated Skills.
+3. Industry Requirements.
+4. Career Objectives.
+5. Personalized Learning.
+6. Continuous Assessment.
+7. Adaptive AI Guidance.
+
+The platform must continuously understand the learner, evaluate progress, identify gaps and modify the learning journey.
+
+The central workflow is:
+
+PROFILE → AUDIT → MATCH → PLAN → LEARN → ASSESS → ADAPT → IMPROVE.
+
+The most important innovation is the **Dynamic Career Readiness Engine**.
+
+When a student's assessment performance, demonstrated competencies or target career changes, the system must reconsider the learning roadmap.
+
+---
+
+# 3. PRODUCT ARCHITECTURE
+
+Build NEXORA as a modular full-stack application.
+
+Preferred architecture:
+
+### Frontend
+- React or Next.js, depending on the supported project environment.
+- TypeScript.
+- Tailwind CSS.
+- shadcn/ui where compatible.
+- Lucide React icons.
+- Recharts for data visualization.
+
+### Backend
+- Secure server-side application logic.
+- Validated API endpoints.
+- Modular services.
+- Central AI orchestration service.
+
+### Database
+Preferred: Supabase PostgreSQL with Supabase Auth and Row Level Security.
+
+If the available Google AI Studio environment has a more suitable native integration, explain the trade-off and use the most reliable compatible architecture.
+
+### AI
+- Google Gemini API.
+- Server-side model calls.
+- Structured JSON outputs.
+- Schema validation.
+- Controlled agent orchestration.
+
+### Deployment
+Use an architecture compatible with the available deployment environment.
+
+Do not assume that every service is already configured.
+
+First establish the available runtime, database integration and secrets-management capabilities.
+
+Never expose private API keys in frontend code.
+
+---
+
+# 4. DESIGN SYSTEM AND BRAND IDENTITY
+
+Create a premium, modern, editorial-style interface.
+
+NEXORA must feel like a professional career intelligence product, not a generic AI dashboard.
+
+### Color palette
+
+- Mustard Yellow: #E8B52E
+- Warm Ivory: #F8F6EF
+- Charcoal: #24231F
+- Muted Olive: #77764B
+- Warm Orange: #D77B43
+- Muted Grey: #89877F
+- Border: #E8E3D8
+
+### Typography
+
+- DM Sans for interface text.
+- DM Serif Display for selected editorial headings.
+
+### Visual direction
+
+- Warm ivory backgrounds.
+- Charcoal text.
+- Restrained mustard accents.
+- Clear visual hierarchy.
+- Professional cards.
+- Consistent spacing.
+- Subtle shadows.
+- Meaningful data visualizations.
+- Smooth but restrained transitions.
+
+Avoid:
+- Excessive gradients.
+- Neon colors.
+- Unnecessary glassmorphism.
+- Childish cartoon graphics.
+- Random decorative illustrations.
+- Overloaded dashboards.
+- Excessive animation.
+
+Use responsive layouts for desktop, tablet and mobile.
+
+Build reusable components and a consistent design system.
+
+---
+
+# 5. APPLICATION NAVIGATION
+
+Create the main application navigation:
+
+1. Dashboard
+2. SkillProof
+3. Career Explorer
+4. Learning Roadmap
+5. NEXORA PLAY
+6. AI Mentor
+7. Projects
+8. Career Readiness
+9. Profile
+10. Settings
+
+Provide an appropriate responsive navigation experience.
+
+The sidebar or navigation should clearly show the current page and maintain consistent behavior across modules.
+
+Do not create dead navigation links.
+
+Every visible interactive element must either work or be clearly identified as coming soon.
+
+---
+
+# 6. USER AUTHENTICATION AND ONBOARDING
+
+Build a complete learner onboarding experience.
+
+### Authentication
+
+Support:
+- Account registration.
+- Login.
+- Logout.
+- Session management.
+- Password recovery where supported.
+- Protected application routes.
+
+### Onboarding workflow
+
+Collect:
+
+**Personal Learning Profile**
+- Display name.
+- Educational institution.
+- Degree or course.
+- Academic year.
+- Field of study.
+
+**Academic Information**
+- Subjects.
+- Relevant academic topics.
+- Certifications.
+- Academic projects.
+
+**Technical Skills**
+- Programming languages.
+- Frameworks.
+- Databases.
+- Tools.
+- Technical interests.
+
+**Career Information**
+- Target career.
+- Secondary career interests.
+- Career objectives.
+
+**Learning Preferences**
+- Daily or weekly study availability.
+- Preferred learning format.
+- Preferred language where supported.
+
+Do not force users to provide unnecessary personal information.
+
+Allow users to update their profile later.
+
+Persist onboarding data in the database.
+
+---
+
+# 7. SKILLPROOF — EVIDENCE-BASED SKILL INTELLIGENCE
+
+Build SkillProof as the central competency management system.
+
+Every skill must have an evidence state.
+
+### Unassessed
+No sufficient evaluation evidence exists.
+
+### Declared
+The learner reports having the skill.
+
+### Demonstrated
+The learner has produced suitable assessment or practical evidence.
+
+### Validated
+The skill has stronger independently reviewed evidence, such as an approved project, verified credential or authorized mentor review.
+
+These states describe evidence quality, not universal proficiency levels.
+
+### Proficiency scale
+
+Use a configurable 0–5 proficiency scale.
+
+Example:
+- 0: No demonstrated proficiency.
+- 1: Foundational understanding.
+- 2: Basic practical application.
+- 3: Independent application.
+- 4: Advanced application.
+- 5: Advanced or specialized application.
+
+A proficiency score must be supported by appropriate evidence.
+
+### SkillProof dashboard
+
+Display:
+- Total declared skills.
+- Demonstrated skills.
+- Validated skills.
+- Unassessed competencies.
+- Skill categories.
+- Evidence history.
+- Assessment history.
+- Proficiency trends.
+- Skills requiring reassessment.
+
+Allow students to add skills and submit supporting evidence.
+
+Critical rule:
+
+Course completion, XP, badges and streaks must never automatically increase proficiency.
+
+---
+
+# 8. ACADEMIC-TO-INDUSTRY INTELLIGENCE
+
+Create a mapping system:
+
+Academic Subject → Learning Outcomes → Technical Competencies → Industry Skills → Career Requirements.
+
+Example:
+
+DBMS:
+- SQL.
+- Database design.
+- Normalization.
+- Relational concepts.
+- Query optimization.
+
+Object-Oriented Programming:
+- Classes and objects.
+- Encapsulation.
+- Inheritance.
+- Polymorphism.
+- Abstraction.
+
+The system must explain how academic learning relates to practical industry competencies.
+
+Important:
+- Studying a subject does not automatically prove mastery.
+- Mappings must have a source and review status.
+- Missing syllabus data must not be fabricated.
+- Allow users or authorized administrators to add missing mappings.
+
+---
+
+# 9. CAREER INTELLIGENCE ENGINE
+
+Build a structured career catalogue.
+
+### Initial MVP careers
+
+Prioritize two fully developed career profiles:
+
+1. Full Stack Developer.
+2. Data Analyst.
+
+Prepare an extensible architecture for:
+
+- Frontend Developer.
+- Backend Developer.
+- Data Scientist.
+- AI/ML Engineer.
+- Cybersecurity Analyst.
+- Cloud Engineer.
+- DevOps Engineer.
+- Mobile Application Developer.
+
+Each career must contain:
+
+- Required skills.
+- Preferred skills.
+- Proficiency expectations.
+- Importance weights.
+- Skill prerequisites.
+- Practical project expectations.
+- Recommended resources.
+
+Career requirements must be stored as structured records.
+
+Do not let AI invent authoritative career requirements.
+
+Use documented reference profiles that can be reviewed and updated.
+
+---
+
+# 10. DYNAMIC CAREER READINESS ENGINE
+
+This is the central intelligence engine of NEXORA.
+
+It must connect learner evidence with career requirements.
+
+### Skill gap calculation
+
+Define:
+
+R = Required proficiency.
+
+D = Demonstrated proficiency supported by evidence.
+
+W = Career-specific importance weight.
+
+Skill Gap:
+
+Gap = max(0, R - D)
+
+Weighted Gap:
+
+Weighted Gap = Gap × W
+
+Career Readiness:
+
+Readiness = 100 × [1 - (Sum of weighted gaps / Sum of weighted requirements)]
+
+Use the correct denominator and handle empty career profiles safely.
+
+The system must document how D is calculated from assessment and evidence records.
+
+For unassessed skills, display missing evidence separately instead of falsely claiming that the student has failed the skill.
+
+### Readiness dashboard
+
+Display:
+- Career readiness indicator.
+- Required skills.
+- Demonstrated skills.
+- Validated skills.
+- Missing competencies.
+- Unassessed competencies.
+- Skills requiring improvement.
+- Priority skill gaps.
+- Readiness change over time.
+
+Every score must be explainable.
+
+The readiness indicator is an internal prototype measure, not an employment probability.
+
+---
+
+# 11. SKILL DEPENDENCY GRAPH
+
+Build a prerequisite-aware learning engine.
+
+Example:
+
+HTML → CSS → JavaScript → DOM → React.
+
+JavaScript → Node.js → REST APIs.
+
+SQL + Backend → Database Integration.
+
+React + REST APIs + Database Integration → Full Stack Capstone.
+
+Git can be learned alongside foundational skills.
+
+Requirements:
+- Dependency relationships.
+- Prerequisite validation.
+- No circular dependencies.
+- Career-specific skill progression.
+- Visual learning path.
+- Correct mission unlocking.
+
+AI may recommend dependencies, but deterministic application logic must validate them.
+
+---
+
+# 12. PERSONALIZED LEARNING ROADMAP
+
+Build a roadmap for every selected career.
+
+Each roadmap step should contain:
+
+- Skill name.
+- Learning objective.
+- Prerequisites.
+- Recommended resource.
+- Practice exercise.
+- Assessment.
+- Estimated duration.
+- Completion criteria.
+- Status.
+
+Possible statuses:
+
+- LOCKED.
+- NOT_STARTED.
+- IN_PROGRESS.
+- COMPLETED.
+- NEEDS_REVISION.
+
+### Learning sequence
+
+Every important learning step should follow:
+
+LEARN → PRACTICE → ASSESS → DEMONSTRATE.
+
+Allow students to:
+- Start a mission.
+- Resume an activity.
+- Mark supported learning activities complete.
+- Submit assessments.
+- Review feedback.
+- View progress.
+
+Use a curated learning resource catalogue.
+
+Every recommended resource must have a stored, verified URL.
+
+Do not fabricate courses or resource links.
+
+---
+
+# 13. ADAPTIVE ASSESSMENT ENGINE
+
+Create an assessment system supporting:
+
+- Multiple-choice questions.
+- Code output prediction.
+- Debugging exercises.
+- Code completion.
+- SQL questions.
+- Conceptual questions.
+- Practical tasks.
+
+### Adaptive rules
+
+Use configurable initial thresholds:
+
+- Below 60%: remedial learning.
+- 60–84%: targeted practice.
+- 85% or above: consider progression after prerequisite and evidence checks.
+
+These are initial prototype thresholds, not universal proficiency standards.
+
+### Assessment workflow
+
+1. Select a target skill.
+2. Generate or retrieve appropriate questions.
+3. Display the assessment.
+4. Submit learner answers.
+5. Score objective answers deterministically.
+6. Evaluate practical submissions using explicit rubrics.
+7. Identify weak concepts.
+8. Save assessment history.
+9. Trigger the appropriate adaptive response.
+
+AI-generated questions must be validated before being used.
+
+Do not treat a single MCQ assessment as complete proof of proficiency.
+
+---
+
+# 14. FIVE SPECIALIZED AI AGENTS
+
+Build five specialized AI responsibilities.
+
+Use Google Gemini through a central orchestration service.
+
+One model may power multiple agents. Separate responsibilities, validated schemas and controlled execution are more important than separate model deployments.
+
+## AGENT 1 — SKILL AUDITOR
+
+Purpose: Understand the learner's current competencies.
+
+Responsibilities:
+- Interpret learner profiles.
+- Review assessments.
+- Analyze practical evidence.
+- Identify evidence states.
+- Recommend reassessment.
+- Identify missing competency evidence.
+
+## AGENT 2 — CAREER ARCHITECT
+
+Purpose: Understand career requirements.
+
+Responsibilities:
+- Analyze selected career profiles.
+- Interpret structured skill requirements.
+- Identify career gaps.
+- Identify transferable competencies.
+- Explain readiness results.
+
+It must not calculate authoritative scores independently of deterministic application logic.
+
+## AGENT 3 — LEARNING STRATEGIST
+
+Purpose: Create personalized learning plans.
+
+Responsibilities:
+- Generate roadmaps.
+- Select approved resources.
+- Recommend practical exercises.
+- Consider prerequisites.
+- Consider learning availability.
+- Create career quests.
+- Modify learning plans after assessment results.
+
+## AGENT 4 — PROGRESS EVALUATOR
+
+Purpose: Understand whether the learner is improving.
+
+Responsibilities:
+- Analyze assessment history.
+- Detect weak concepts.
+- Compare performance trends.
+- Identify repeated failures.
+- Recommend remedial learning.
+- Determine whether replanning is needed.
+
+## AGENT 5 — ADAPTIVE MENTOR
+
+Purpose: Teach and guide the learner.
+
+Responsibilities:
+- Explain difficult concepts.
+- Provide progressive hints.
+- Explain mistakes.
+- Help debug code.
+- Recommend revision.
+- Personalize explanations using authorized learner context.
+
+### CENTRAL ORCHESTRATOR
+
+The orchestrator must:
+
+1. Receive application events.
+2. Retrieve authorized learner information.
+3. Select the necessary agents.
+4. Invoke them in a controlled sequence.
+5. Validate outputs against schemas.
+6. Apply deterministic business rules.
+7. Save approved results.
+8. Handle failures and retries.
+9. Maintain execution logs.
+
+Suggested states:
+
+- PENDING.
+- RUNNING.
+- COMPLETED.
+- FAILED.
+- RETRYING.
+
+Do not invoke every agent for every user action.
+
+Do not provide agents unrestricted database access or arbitrary code execution.
+
+### Required agent workflows
+
+**New Learner:**
+
+Profile Saved → Skill Auditor → Career Architect → Learning Strategist → Roadmap.
+
+**Poor Assessment:**
+
+Assessment Submitted → Deterministic Scoring → Progress Evaluator → Learning Strategist → Adaptive Mentor.
+
+**Career Change:**
+
+New Career Selected → Career Architect → Skill Auditor → Learning Strategist.
+
+**New Project Evidence:**
+
+Project Submitted → Evidence Review → Skill Auditor → Updated Competency Profile.
+
+All agent outputs must be structured and validated.
+
+If Gemini returns invalid output, retry once and then use a safe fallback where possible.
+
+---
+
+# 15. AI LEARNING COMPANION
+
+Build a dedicated AI Mentor interface.
+
+The mentor should understand the learner's authorized context:
+
+- Current career.
+- Demonstrated skills.
+- Assessment history.
+- Weak concepts.
+- Active roadmap.
+- Current learning activity.
+
+### Mentor capabilities
+
+- Explain programming concepts.
+- Generate practice questions.
+- Explain incorrect answers.
+- Help debug code.
+- Recommend learning activities.
+- Explain career gaps.
+- Guide practical exercises.
+
+### Progressive hint system
+
+1. Conceptual clue.
+2. Specific guidance.
+3. Partial solution.
+4. Full explanation when requested.
+
+The mentor should teach rather than immediately reveal answers.
+
+AI responses must not directly modify authoritative skill records.
+
+---
+
+# 16. NEXORA PLAY — GAMIFIED LEARNING
+
+Create a dedicated gamified learning experience inside NEXORA.
+
+**NEXORA PLAY — Learn. Play. Prove.**
+
+It must be visually engaging but consistent with the professional NEXORA identity.
+
+## 16.1 Daily Brain Arena
+
+Create short 3–5 minute challenges.
+
+Challenge categories:
+
+- Predict code output.
+- Find bugs.
+- Complete missing code.
+- Solve SQL queries.
+- Identify algorithms.
+- Technical MCQs.
+- Logical reasoning.
+
+Provide feedback and explanations.
+
+Use a reusable assessment engine wherever possible.
+
+## 16.2 Career Quests
+
+Create career-specific learning missions.
+
+Example Full Stack Quest:
+
+1. HTML Foundations.
+2. CSS Layout.
+3. JavaScript Logic.
+4. DOM Manipulation.
+5. React Components.
+6. API Integration.
+7. Backend Fundamentals.
+8. Database Integration.
+9. Full Stack Capstone.
+
+Each quest must contain:
+- Objective.
+- Target skill.
+- Prerequisites.
+- Learning resource.
+- Practical exercise.
+- Completion criteria.
+- Estimated duration.
+- XP reward.
+
+## 16.3 Boss Challenges
+
+Create practical project challenges:
+
+- Python Number Guessing Game.
+- JavaScript Calculator.
+- React Task Manager.
+- SQL Database Design.
+- REST API.
+- Full Stack Application.
+
+Provide requirements, submission, evaluation rubrics and feedback.
+
+Never claim code has been executed unless it actually has been executed in an appropriate environment.
+
+## 16.4 XP SYSTEM
+
+Students earn XP for eligible activities.
+
+Examples:
+- Daily challenges.
+- Assessments.
+- Completed missions.
+- Practical projects.
+- Learning milestones.
+
+Requirements:
+- Server-side reward calculations.
+- XP transaction ledger.
+- Duplicate reward prevention.
+- Configurable rewards.
+- XP history.
+
+Never trust XP values sent from the frontend.
+
+## 16.5 LEVEL SYSTEM
+
+Example levels:
+
+- Explorer.
+- Apprentice.
+- Builder.
+- Problem Solver.
+- Specialist.
+- Innovator.
+- Career Engineer.
+
+Display:
+- Current level.
+- Total XP.
+- Next level.
+- Progress indicator.
+
+Levels represent engagement, not technical proficiency.
+
+## 16.6 ACHIEVEMENTS
+
+Examples:
+
+- First Mission Completed.
+- First Practical Project.
+- SQL Explorer.
+- Debugging Specialist.
+- Seven-Day Learning Streak.
+- Career Quest Finisher.
+
+Define clear award criteria and prevent duplicates.
+
+## 16.7 LEARNING STREAKS
+
+Display:
+- Current streak.
+- Longest streak.
+- Daily activity.
+- Weekly activity.
+
+Use the learner's configured timezone.
+
+Do not fabricate streaks.
+
+## 16.8 GAMIFICATION INTEGRITY
+
+Keep two separate systems:
+
+ENGAGEMENT:
+- XP.
+- Levels.
+- Achievements.
+- Streaks.
+- Game participation.
+
+COMPETENCY:
+- Assessments.
+- Practical exercises.
+- Project evidence.
+- Validated credentials.
+
+Game completion and XP must never directly increase SkillProof proficiency.
+
+Only appropriate evidence workflows can update competency records.
+
+## 16.9 OPTIONAL LEADERBOARD
+
+Prepare a privacy-conscious leaderboard architecture.
+
+Do not introduce complex real-time multiplayer infrastructure during the initial build.
+
+---
+
+# 17. GITHUB PROJECT INTELLIGENCE
+
+Prepare a secure public GitHub repository analysis module.
+
+Analyze:
+- Languages.
+- Frameworks.
+- Dependencies.
+- README.
+- Repository structure.
+- Relevant project evidence.
+
+Requirements:
+- Validate repository URLs.
+- Restrict outbound network access.
+- Block private and internal network targets.
+- Apply timeouts and size limits.
+- Never execute submitted repository code.
+- Treat repository content as untrusted.
+- Protect AI prompts from repository-based prompt injection.
+
+Detected technologies are potential evidence, not automatic proof of skill.
+
+This feature can be implemented after the core learner journey is functional.
+
+---
+
+# 18. TRANSFERABLE SKILL INTELLIGENCE
+
+Support career switching.
+
+Example:
+
+Full Stack Developer → Data Analyst.
+
+Preserve relevant skill evidence and assessment history.
+
+Recalculate:
+- Career requirements.
+- Existing transferable skills.
+- New skill gaps.
+- Learning priorities.
+- Personalized roadmap.
+
+Do not force the learner to start from zero.
+
+---
+
+# 19. LEARNING TIME OPTIMIZER
+
+Allow students to specify daily or weekly available learning time.
+
+Generate realistic schedules.
+
+Consider:
+- Skill importance.
+- Prerequisites.
+- Estimated learning duration.
+- Current performance.
+- Learner availability.
+
+Reschedule missed activities without resetting learning progress.
+
+---
+
+# 20. CAREER READINESS REPORT
+
+Generate a transparent career readiness report.
+
+Include:
+
+- Selected career.
+- Required competencies.
+- Demonstrated competencies.
+- Validated competencies.
+- Skills needing improvement.
+- Unassessed skills.
+- Transferable competencies.
+- Assessment history.
+- Completed projects.
+- Next recommended actions.
+
+Explain how the readiness indicator is calculated.
+
+Do not claim guaranteed employment or placement.
+
+---
+
+# 21. INSTITUTIONAL INTELLIGENCE
+
+Prepare an optional institutional dashboard.
+
+Authorized administrators may view aggregated information:
+
+- Common skill gaps.
+- Career-specific competency trends.
+- Academic-to-industry alignment.
+- Assessment trends.
+- Cohort progress.
+
+Use privacy-protected aggregate data.
+
+Do not expose individual learner records without authorization.
+
+This is an advanced feature, not a prerequisite for the first MVP.
+
+---
+
+# 22. DATABASE DESIGN
+
+Inspect the selected database and define a normalized schema.
+
+Suggested logical entities:
+
+### Learner
+- profiles
+- academic_subjects
+- learner_skills
+- skill_evidence
+
+### Career
+- careers
+- career_requirements
+- skill_dependencies
+- competency_mappings
+
+### Learning
+- learning_resources
+- roadmaps
+- roadmap_steps
+- assessments
+- assessment_questions
+- assessment_attempts
+
+### AI
+- agent_runs
+- ai_interactions
+- ai_feedback
+
+### Gamification
+- xp_transactions
+- learner_levels
+- daily_challenges
+- challenge_attempts
+- career_quests
+- quest_progress
+- achievements
+- learner_achievements
+- learning_streaks
+
+### Institutional
+- institution_profiles
+- learner_enrollments
+- aggregated_skill_analytics
+
+These are logical entities, not an instruction to create every table immediately.
+
+Reuse existing compatible entities.
+
+Use:
+- Foreign keys.
+- Unique constraints.
+- Appropriate indexes.
+- Timestamps.
+- Migrations.
+- Row Level Security.
+- Server-side authorization.
+
+Do not drop or overwrite user data during migrations.
+
+---
+
+# 23. SECURITY AND RELIABILITY
+
+Implement:
+
+- Secure authentication.
+- Role-based authorization.
+- Row Level Security.
+- Server-side secret management.
+- Request validation.
+- Rate limiting.
+- AI output validation.
+- Prompt injection protection.
+- Secure GitHub URL handling.
+- Audit logging.
+- Duplicate request prevention.
+- Safe error handling.
+
+Never expose Gemini API keys or database service-role credentials in frontend code.
+
+Never trust client-submitted proficiency, XP, achievement or assessment results.
+
+Never execute arbitrary submitted code.
+
+---
+
+# 24. API DESIGN
+
+Create clear, validated application interfaces for:
+
+- Authentication.
+- Learner profile.
+- Skill management.
+- Evidence submission.
+- Academic mapping.
+- Career selection.
+- Career gap analysis.
+- Roadmap generation.
+- Assessment creation.
+- Assessment submission.
+- Agent orchestration.
+- AI Mentor.
+- Daily challenges.
+- XP awards.
+- Career quests.
+- Achievements.
+- Learning streaks.
+- Career readiness reports.
+
+Every endpoint must have:
+- Defined request schema.
+- Defined response schema.
+- Authentication rules.
+- Authorization rules.
+- Input validation.
+- Error handling.
+- Database effects.
+
+---
+
+# 25. DEVELOPMENT AND IMPLEMENTATION RULES
+
+This section is mandatory.
+
+You are building from scratch, but you must still avoid unnecessary complexity.
+
+### Rule 1 — Build a complete product, not disconnected screens.
+
+Every important page must connect to real application logic and persistent data.
+
+### Rule 2 — Reuse components.
+
+Do not create duplicate cards, buttons, navigation systems, hooks or API clients.
+
+### Rule 3 — Avoid unnecessary files.
+
+Create a file only when it has a clear architectural responsibility.
+
+Do not generate multiple versions of the same component.
+
+### Rule 4 — Avoid unnecessary dependencies.
+
+Use existing packages whenever possible.
+
+Install new packages only when required.
+
+### Rule 5 — Avoid speculative features.
+
+Do not build complex infrastructure for features that are not required for the MVP.
+
+### Rule 6 — No fake functionality.
+
+Do not display success messages when operations fail.
+
+Do not present mock data as real user data.
+
+Seeded demo data must be clearly identified.
+
+### Rule 7 — Preserve code quality.
+
+Use TypeScript types, reusable services, validation and meaningful error handling.
+
+Avoid giant components and duplicated business logic.
+
+### Rule 8 — Protect the database.
+
+Use migrations and safe updates.
+
+Never reset the database to solve a normal development issue.
+
+### Rule 9 — Control AI usage.
+
+Do not call all agents unnecessarily.
+
+Use event-driven orchestration.
+
+### Rule 10 — Verify before claiming completion.
+
+A feature is complete only when its important user workflow works and relevant checks pass.
+
+---
+
+# 26. IMPLEMENTATION PHASES
+
+Build the application in the following sequence.
+
+Do not attempt every feature simultaneously.
+
+## PHASE 1A — APPLICATION FOUNDATION
+
+Build:
+- Project structure.
+- Design system.
+- Responsive navigation.
+- Authentication.
+- Database connection.
+- Learner onboarding.
+- User profile.
+- Dashboard foundation.
+- Secure API architecture.
+
+Acceptance criteria:
+- User can register.
+- User can log in.
+- User can complete onboarding.
+- User information persists.
+- Protected routes work.
+- Dashboard displays actual user data.
+
+## PHASE 1B — CORE INTELLIGENCE
+
+Build:
+- SkillProof.
+- Academic-to-industry mapping.
+- Career catalogue.
+- Weighted skill gap engine.
+- Skill dependency graph.
+- Career readiness calculations.
+
+Acceptance criteria:
+- Student can add skills.
+- Evidence states are correctly maintained.
+- Career requirements are retrieved.
+- Skill gaps are calculated correctly.
+- Results have explanations.
+
+## PHASE 1C — ADAPTIVE LEARNING
+
+Build:
+- Personalized roadmap.
+- Learning resource catalogue.
+- Assessment engine.
+- Progress evaluator.
+- Automatic replanning.
+
+Acceptance criteria:
+- Student receives a personalized roadmap.
+- Student can complete assessments.
+- Weak concepts are identified.
+- Remedial activities can be added.
+- Career changes regenerate the roadmap appropriately.
+
+## PHASE 1D — MULTI-AGENT AI
+
+Build:
+- Five agent responsibilities.
+- Central orchestrator.
+- Structured output schemas.
+- AI Mentor.
+- Agent execution history.
+- Error handling and fallback.
+
+Acceptance criteria:
+- The correct agents are selected.
+- Outputs are validated.
+- Agent execution is logged.
+- Invalid outputs do not corrupt data.
+- Unnecessary agent calls are avoided.
+
+## PHASE 1E — NEXORA PLAY
+
+Build:
+- XP engine.
+- Levels.
+- Daily Brain Arena.
+- Career Quests.
+- Achievements.
+- Learning streaks.
+- Boss Challenges.
+
+Acceptance criteria:
+- Rewards are server-verified.
+- Duplicate XP is prevented.
+- Challenges work.
+- Quest prerequisites are enforced.
+- Gamification does not modify SkillProof directly.
+
+## PHASE 1F — ADVANCED INTELLIGENCE
+
+Build:
+- GitHub analysis.
+- Transferable skills.
+- Learning Time Optimizer.
+- Institutional analytics.
+- Optional leaderboard.
+
+Acceptance criteria:
+- Evidence is handled safely.
+- Career transitions preserve relevant history.
+- Study plans reflect learner availability.
+- Institutional data is appropriately protected.
+
+## PHASE 1G — FINAL VALIDATION
+
+Perform:
+- Functional testing.
+- Integration testing.
+- Security testing.
+- Database validation.
+- AI failure testing.
+- Responsive UI testing.
+- Production build.
+- Deployment verification.
+
+Provide a final implementation report.
+
+---
+
+# 27. REQUIRED DEMONSTRATION SCENARIO
+
+Create a reliable demonstration using a clearly labeled seeded test learner.
+
+Example learner:
+
+- Target career: Full Stack Developer.
+- Declared skills: SQL and HTML.
+- Demonstrated skill: Python, supported by a practical project.
+- Available study time: 8 hours per week.
+
+Demonstration:
+
+1. Student logs in.
+2. Student reviews the skill profile.
+3. Skill Auditor evaluates the evidence.
+4. Career Architect calculates career gaps.
+5. Learning Strategist creates the roadmap.
+6. Student completes a JavaScript assessment.
+7. Student scores 45%.
+8. Progress Evaluator identifies weak concepts.
+9. Learning Strategist inserts remedial learning.
+10. Adaptive Mentor provides hints.
+11. Student completes a reassessment.
+12. Skill evidence is updated according to the assessment rubric.
+13. Career readiness is recalculated.
+14. Student changes the career to Data Analyst.
+15. NEXORA preserves relevant evidence and creates a new roadmap.
+16. Student completes a NEXORA PLAY challenge.
+
+This demonstration must use working application workflows.
+
+If any part uses seeded or simulated data, label it clearly.
+
+---
+
+# 28. FINAL ACCEPTANCE TESTS
+
+The project must pass these important tests:
+
+1. Registration and login work.
+2. Onboarding saves persistent data.
+3. Protected pages enforce authentication.
+4. Users cannot access another learner's private records.
+5. Declared skills do not automatically become demonstrated.
+6. Unassessed skills are not treated as failed skills.
+7. Skill gap calculations match reference test cases.
+8. Circular skill dependencies are rejected.
+9. Career requirements come from structured records.
+10. Learning resources come from the approved catalogue.
+11. Assessment scoring works correctly.
+12. Poor assessments trigger appropriate remedial actions.
+13. Career switching preserves relevant evidence.
+14. AI outputs are schema-validated.
+15. Agent execution is logged.
+16. Gemini failures are handled safely.
+17. XP is calculated server-side.
+18. Duplicate XP awards are prevented.
+19. Gamification never directly changes proficiency.
+20. The dashboard reflects real persisted information.
+21. Mobile navigation works.
+22. Production build succeeds.
+
+Do not report tests as passed unless they were actually executed.
+
+---
+
+# 29. FINAL DELIVERY REPORT
+
+After implementation, provide:
+
+1. Project architecture.
+2. Technology stack.
+3. Implemented features.
+4. Database structure.
+5. API endpoints.
+6. Five AI agent responsibilities.
+7. Dynamic Career Readiness Engine methodology.
+8. NEXORA PLAY architecture.
+9. Security measures.
+10. Tests performed.
+11. Actual test results.
+12. Remaining limitations.
+13. Required environment variables.
+14. Deployment instructions.
+15. Recommended future improvements.
+
+Clearly distinguish implemented features from planned or mocked features.
+
+---
+
+# FINAL PRODUCT DEFINITION
+
+NEXORA is not another generic AI chatbot, online course catalogue or educational game.
+
+It is an evidence-based career intelligence platform that understands a learner, identifies career requirements, measures demonstrated competencies and continuously adapts learning pathways.
+
+Its five specialized AI agents provide coordinated intelligence.
+
+Its Dynamic Career Readiness Engine connects evidence, skill gaps and learning progression.
+
+Its NEXORA PLAY experience makes technical learning engaging without compromising assessment integrity.
+
+The ultimate learning cycle is:
+
+**UNDERSTAND → PROVE → DISCOVER → LEARN → PRACTICE → ADAPT → GROW**
+
+**NEXORA — Know Your Skills. Discover Your Gaps. Engineer Your Future.**
+
+**NEXORA PLAY — Learn. Play. Prove.**
