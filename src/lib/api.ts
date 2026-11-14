@@ -274,7 +274,13 @@ export const api = {
   },
   getOAuthProviders: () => request<OAuthProvidersPayload>('/api/auth/oauth/providers'),
   getOAuthUrl: (provider: 'google' | 'microsoft', origin: string) =>
-    request<{ url: string }>(`/api/auth/oauth/${provider}/url?origin=${encodeURIComponent(origin)}`),
+    request<{ url: string; handoffId: string }>(
+      `/api/auth/oauth/${provider}/url?origin=${encodeURIComponent(origin)}`
+    ),
+  pollOAuthHandoff: (handoffId: string) =>
+    request<{ status: 'PENDING' | 'SUCCESS' | 'ERROR'; token?: string | null; error?: string | null }>(
+      `/api/auth/oauth/handoff/${encodeURIComponent(handoffId)}`
+    ),
   demoLogin: async () => {
     const res = await request<{ token?: string; dashboard: DashboardPayload }>('/api/auth/demo-login', {
       method: 'POST',

@@ -315,6 +315,16 @@ test('email verification, password reset, OAuth honest config check, resumable 5
     assert.ok(String(gUrl.data.callbackUrl).includes('/api/auth/oauth/google/callback'));
   }
 
+  const pendingHandoff = await apiReq(`/api/auth/oauth/handoff/test-pending-${suffix}`);
+  assert.equal(pendingHandoff.status, 200);
+  assert.equal(pendingHandoff.data.status, 'PENDING');
+
+  const cbErrRes = await fetch(`${BASE_URL}/api/auth/oauth/google/callback?error=${encodeURIComponent('<script>alert(1)</script>')}`);
+  assert.equal(cbErrRes.status, 400);
+  const cbHtml = await cbErrRes.text();
+  assert.equal(cbHtml.includes('<script>alert(1)</script>'), false);
+  assert.equal(cbHtml.includes('BroadcastChannel'), true);
+
   // 2. Register + Email Verification
   const reg = await apiReq('/api/auth/register', {
     method: 'POST',

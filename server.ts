@@ -83,6 +83,40 @@ function sha256Hex(value: string): string {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function recordOAuthHandoff(
+  handoffId: string | null | undefined,
+  result: { ok: boolean; token?: string; error?: string }
+) {
+  if (!handoffId) return;
+  const now = new Date();
+  const expires = new Date(now.getTime() + 90 * 1000);
+  db.prepare(
+    `INSERT INTO oauth_handoffs (handoff_id, status, session_token, error_message, expires_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(handoff_id) DO UPDATE SET
+       status = excluded.status,
+       session_token = excluded.session_token,
+       error_message = excluded.error_message,
+       expires_at = excluded.expires_at`
+  ).run(
+    handoffId,
+    result.ok ? 'SUCCESS' : 'ERROR',
+    result.ok ? result.token || null : null,
+    result.ok ? null : result.error || 'OAuth authentication failed.',
+    expires.toISOString(),
+    now.toISOString()
+  );
+}
+
 function renderOAuthPopupHtml(payload: {
   ok: boolean;
   provider: 'google' | 'microsoft';
@@ -95,28 +129,60 @@ function renderOAuthPopupHtml(payload: {
     provider: payload.provider,
     token: payload.token || null,
     error: payload.error || null,
-  });
-  const origin = payload.targetOrigin && payload.targetOrigin !== 'null' ? JSON.stringify(payload.targetOrigin) : '"*"';
+  })
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
+  const origin = (
+    payload.targetOrigin && payload.targetOrigin !== 'null' ? JSON.stringify(payload.targetOrigin) : '"*"'
+  )
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e');
+  const safeErrorText = escapeHtml(payload.error || 'Please try again.');
+  const safeReturnUrl =
+    payload.targetOrigin && /^https?:\/\//i.test(payload.targetOrigin)
+      ? escapeHtml(payload.targetOrigin)
+      : '/';
+
   return `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>NEXORA Authentication</title></head>
-<body style="font-family: sans-serif; background: #F8F6EF; color: #24231F; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0;">
-  <div style="text-align:center; padding:24px;">
-    <p style="font-weight:600; margin-bottom:8px;">${
-      payload.ok ? 'Sign-in complete. Returning to NEXORA…' : 'Authentication could not be completed.'
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NEXORA Authentication</title></head>
+<body style="font-family: system-ui, -apple-system, sans-serif; background: #F8F6EF; color: #24231F; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; padding:16px;">
+  <div style="max-width:420px; width:100%; background:#FDFBF6; border:1px solid #E8E3D8; border-radius:16px; text-align:center; padding:28px;">
+    <p style="font-weight:600; font-size:18px; margin:0 0 8px;">${
+      payload.ok ? 'Sign-in complete' : 'Authentication could not be completed'
     }</p>
-    <p style="font-size:13px; color:#77764B;">${
-      payload.ok ? 'You can close this window if it does not close automatically.' : (payload.error || 'Please try again.')
+    <p style="font-size:13px; color:#77764B; line-height:1.5; margin:0 0 18px;">${
+      payload.ok
+        ? 'Your NEXORA workspace is signing in now. You may close this tab and return to NEXORA.'
+        : safeErrorText
     }</p>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button type="button" onclick="window.close()" style="background:#24231F; color:#F8F6EF; border:none; border-radius:10px; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer;">Close Window</button>
+      <a href="${safeReturnUrl}" style="background:#FDFBF6; color:#24231F; border:1px solid #E8E3D8; border-radius:10px; padding:10px 18px; font-size:13px; font-weight:600; text-decoration:none;">Open NEXORA</a>
+    </div>
   </div>
   <script>
     (function () {
+      var data = ${safePayload};
       try {
         if (window.opener) {
-          window.opener.postMessage(${safePayload}, ${origin});
+          window.opener.postMessage(data, ${origin});
+          if (${origin} !== "*") {
+            window.opener.postMessage(data, "*");
+          }
         }
       } catch (e) {}
-      setTimeout(function () { window.close(); }, 350);
+      try {
+        if (typeof BroadcastChannel !== "undefined") {
+          var ch = new BroadcastChannel("nexora_oauth_channel");
+          ch.postMessage(data);
+          ch.close();
+        }
+      } catch (e) {}
+      if (window.opener) {
+        setTimeout(function () { window.close(); }, 350);
+      }
     })();
   </script>
 </body>
@@ -678,6 +744,41 @@ app.get('/api/auth/oauth/providers', (req, res) => {
   });
 });
 
+app.get('/api/auth/oauth/handoff/:handoffId', (req, res) => {
+  const handoffId = String(req.params.handoffId || '').trim();
+  if (!handoffId) {
+    return res.status(400).json({ error: 'Missing handoff ID.' });
+  }
+  const nowIso = new Date().toISOString();
+  db.prepare(`DELETE FROM oauth_handoffs WHERE expires_at < ?`).run(nowIso);
+
+  const row = db
+    .prepare(
+      `SELECT handoff_id, status, session_token, error_message
+       FROM oauth_handoffs
+       WHERE handoff_id = ?`
+    )
+    .get(handoffId) as
+    | {
+        handoff_id: string;
+        status: 'SUCCESS' | 'ERROR';
+        session_token: string | null;
+        error_message: string | null;
+      }
+    | undefined;
+
+  if (!row) {
+    return res.json({ status: 'PENDING', token: null, error: null });
+  }
+
+  db.prepare(`DELETE FROM oauth_handoffs WHERE handoff_id = ?`).run(handoffId);
+  return res.json({
+    status: row.status,
+    token: row.session_token || null,
+    error: row.error_message || null,
+  });
+});
+
 app.get('/api/auth/oauth/google/url', (req, res) => {
   const baseUrl = resolvePublicBaseUrl(req);
   const callbackUrl = `${baseUrl}/api/auth/oauth/google/callback`;
@@ -691,13 +792,15 @@ app.get('/api/auth/oauth/google/url', (req, res) => {
   }
 
   const state = crypto.randomBytes(24).toString('hex');
+  const handoffId = crypto.randomBytes(24).toString('hex');
   const now = new Date();
   const expires = new Date(now.getTime() + 10 * 60 * 1000);
   const origin = String(req.query.origin || baseUrl);
+  db.prepare(`DELETE FROM oauth_states WHERE expires_at < ?`).run(now.toISOString());
   db.prepare(
-    `INSERT INTO oauth_states (state, provider, redirect_origin, expires_at, created_at)
-     VALUES (?, 'google', ?, ?, ?)`
-  ).run(state, origin, expires.toISOString(), now.toISOString());
+    `INSERT INTO oauth_states (state, provider, redirect_origin, handoff_id, expires_at, created_at)
+     VALUES (?, 'google', ?, ?, ?, ?)`
+  ).run(state, origin, handoffId, expires.toISOString(), now.toISOString());
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!.trim(),
@@ -713,7 +816,7 @@ app.get('/api/auth/oauth/google/url', (req, res) => {
   if (req.query.redirect === '1') {
     return res.redirect(url);
   }
-  return res.json({ url });
+  return res.json({ url, handoffId });
 });
 
 app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'], async (req, res) => {
@@ -722,14 +825,21 @@ app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'],
   const oauthErr = String(req.query.error || '');
 
   const stateRow = db
-    .prepare(`SELECT state, redirect_origin, expires_at FROM oauth_states WHERE state = ? AND provider = 'google'`)
-    .get(state) as { state: string; redirect_origin: string; expires_at: string } | undefined;
+    .prepare(
+      `SELECT state, redirect_origin, handoff_id, expires_at
+       FROM oauth_states
+       WHERE state = ? AND provider = 'google'`
+    )
+    .get(state) as
+    | { state: string; redirect_origin: string; handoff_id: string | null; expires_at: string }
+    | undefined;
 
   if (state) {
     db.prepare(`DELETE FROM oauth_states WHERE state = ?`).run(state);
   }
 
   if (oauthErr) {
+    recordOAuthHandoff(stateRow?.handoff_id, { ok: false, error: oauthErr });
     return res.status(400).send(
       renderOAuthPopupHtml({
         ok: false,
@@ -741,22 +851,26 @@ app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'],
   }
 
   if (!stateRow || new Date(stateRow.expires_at).getTime() < Date.now() || !code) {
+    const errMsg = 'Invalid or expired OAuth state.';
+    recordOAuthHandoff(stateRow?.handoff_id, { ok: false, error: errMsg });
     return res.status(400).send(
       renderOAuthPopupHtml({
         ok: false,
         provider: 'google',
-        error: 'Invalid or expired OAuth state.',
+        error: errMsg,
         targetOrigin: stateRow?.redirect_origin,
       })
     );
   }
 
   if (!isGoogleOAuthConfigured()) {
+    const errMsg = 'Google OAuth credentials are not configured.';
+    recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
     return res.status(503).send(
       renderOAuthPopupHtml({
         ok: false,
         provider: 'google',
-        error: 'Google OAuth credentials are not configured.',
+        error: errMsg,
         targetOrigin: stateRow.redirect_origin,
       })
     );
@@ -778,11 +892,13 @@ app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'],
     });
 
     if (!tokenRes.ok) {
+      const errMsg = 'Google token exchange failed.';
+      recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
       return res.status(400).send(
         renderOAuthPopupHtml({
           ok: false,
           provider: 'google',
-          error: 'Google token exchange failed.',
+          error: errMsg,
           targetOrigin: stateRow.redirect_origin,
         })
       );
@@ -793,11 +909,13 @@ app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'],
       headers: { Authorization: `Bearer ${tokens.access_token || ''}` },
     });
     if (!profileRes.ok) {
+      const errMsg = 'Failed to retrieve Google user profile.';
+      recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
       return res.status(400).send(
         renderOAuthPopupHtml({
           ok: false,
           provider: 'google',
-          error: 'Failed to retrieve Google user profile.',
+          error: errMsg,
           targetOrigin: stateRow.redirect_origin,
         })
       );
@@ -805,11 +923,13 @@ app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'],
 
     const userInfo = (await profileRes.json()) as { sub?: string; email?: string; name?: string };
     if (!userInfo.email || !userInfo.sub) {
+      const errMsg = 'Google account did not return an email address.';
+      recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
       return res.status(400).send(
         renderOAuthPopupHtml({
           ok: false,
           provider: 'google',
-          error: 'Google account did not return an email address.',
+          error: errMsg,
           targetOrigin: stateRow.redirect_origin,
         })
       );
@@ -823,6 +943,7 @@ app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'],
     });
     const session = createSession(userId, true);
     setSessionCookie(req, res, session.token, session.maxAgeMs);
+    recordOAuthHandoff(stateRow.handoff_id, { ok: true, token: session.token });
 
     return res.send(
       renderOAuthPopupHtml({
@@ -833,11 +954,13 @@ app.get(['/api/auth/oauth/google/callback', '/api/auth/oauth/google/callback/'],
       })
     );
   } catch {
+    const errMsg = 'Unexpected error completing Google sign-in.';
+    recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
     return res.status(500).send(
       renderOAuthPopupHtml({
         ok: false,
         provider: 'google',
-        error: 'Unexpected error completing Google sign-in.',
+        error: errMsg,
         targetOrigin: stateRow.redirect_origin,
       })
     );
@@ -858,13 +981,15 @@ app.get('/api/auth/oauth/microsoft/url', (req, res) => {
 
   const tenant = (process.env.MICROSOFT_TENANT_ID || 'common').trim();
   const state = crypto.randomBytes(24).toString('hex');
+  const handoffId = crypto.randomBytes(24).toString('hex');
   const now = new Date();
   const expires = new Date(now.getTime() + 10 * 60 * 1000);
   const origin = String(req.query.origin || baseUrl);
+  db.prepare(`DELETE FROM oauth_states WHERE expires_at < ?`).run(now.toISOString());
   db.prepare(
-    `INSERT INTO oauth_states (state, provider, redirect_origin, expires_at, created_at)
-     VALUES (?, 'microsoft', ?, ?, ?)`
-  ).run(state, origin, expires.toISOString(), now.toISOString());
+    `INSERT INTO oauth_states (state, provider, redirect_origin, handoff_id, expires_at, created_at)
+     VALUES (?, 'microsoft', ?, ?, ?, ?)`
+  ).run(state, origin, handoffId, expires.toISOString(), now.toISOString());
 
   const params = new URLSearchParams({
     client_id: process.env.MICROSOFT_CLIENT_ID!.trim(),
@@ -880,7 +1005,7 @@ app.get('/api/auth/oauth/microsoft/url', (req, res) => {
   if (req.query.redirect === '1') {
     return res.redirect(url);
   }
-  return res.json({ url });
+  return res.json({ url, handoffId });
 });
 
 app.get(['/api/auth/oauth/microsoft/callback', '/api/auth/oauth/microsoft/callback/'], async (req, res) => {
@@ -889,14 +1014,21 @@ app.get(['/api/auth/oauth/microsoft/callback', '/api/auth/oauth/microsoft/callba
   const oauthErr = String(req.query.error_description || req.query.error || '');
 
   const stateRow = db
-    .prepare(`SELECT state, redirect_origin, expires_at FROM oauth_states WHERE state = ? AND provider = 'microsoft'`)
-    .get(state) as { state: string; redirect_origin: string; expires_at: string } | undefined;
+    .prepare(
+      `SELECT state, redirect_origin, handoff_id, expires_at
+       FROM oauth_states
+       WHERE state = ? AND provider = 'microsoft'`
+    )
+    .get(state) as
+    | { state: string; redirect_origin: string; handoff_id: string | null; expires_at: string }
+    | undefined;
 
   if (state) {
     db.prepare(`DELETE FROM oauth_states WHERE state = ?`).run(state);
   }
 
   if (oauthErr) {
+    recordOAuthHandoff(stateRow?.handoff_id, { ok: false, error: oauthErr });
     return res.status(400).send(
       renderOAuthPopupHtml({
         ok: false,
@@ -908,22 +1040,26 @@ app.get(['/api/auth/oauth/microsoft/callback', '/api/auth/oauth/microsoft/callba
   }
 
   if (!stateRow || new Date(stateRow.expires_at).getTime() < Date.now() || !code) {
+    const errMsg = 'Invalid or expired Microsoft OAuth state.';
+    recordOAuthHandoff(stateRow?.handoff_id, { ok: false, error: errMsg });
     return res.status(400).send(
       renderOAuthPopupHtml({
         ok: false,
         provider: 'microsoft',
-        error: 'Invalid or expired Microsoft OAuth state.',
+        error: errMsg,
         targetOrigin: stateRow?.redirect_origin,
       })
     );
   }
 
   if (!isMicrosoftOAuthConfigured()) {
+    const errMsg = 'Microsoft OAuth credentials are not configured.';
+    recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
     return res.status(503).send(
       renderOAuthPopupHtml({
         ok: false,
         provider: 'microsoft',
-        error: 'Microsoft OAuth credentials are not configured.',
+        error: errMsg,
         targetOrigin: stateRow.redirect_origin,
       })
     );
@@ -950,11 +1086,13 @@ app.get(['/api/auth/oauth/microsoft/callback', '/api/auth/oauth/microsoft/callba
     );
 
     if (!tokenRes.ok) {
+      const errMsg = 'Microsoft token exchange failed.';
+      recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
       return res.status(400).send(
         renderOAuthPopupHtml({
           ok: false,
           provider: 'microsoft',
-          error: 'Microsoft token exchange failed.',
+          error: errMsg,
           targetOrigin: stateRow.redirect_origin,
         })
       );
@@ -995,11 +1133,13 @@ app.get(['/api/auth/oauth/microsoft/callback', '/api/auth/oauth/microsoft/callba
     }
 
     if (!email || !subject) {
+      const errMsg = 'Microsoft account did not return a valid email address.';
+      recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
       return res.status(400).send(
         renderOAuthPopupHtml({
           ok: false,
           provider: 'microsoft',
-          error: 'Microsoft account did not return a valid email address.',
+          error: errMsg,
           targetOrigin: stateRow.redirect_origin,
         })
       );
@@ -1013,6 +1153,7 @@ app.get(['/api/auth/oauth/microsoft/callback', '/api/auth/oauth/microsoft/callba
     });
     const session = createSession(userId, true);
     setSessionCookie(req, res, session.token, session.maxAgeMs);
+    recordOAuthHandoff(stateRow.handoff_id, { ok: true, token: session.token });
 
     return res.send(
       renderOAuthPopupHtml({
@@ -1023,11 +1164,13 @@ app.get(['/api/auth/oauth/microsoft/callback', '/api/auth/oauth/microsoft/callba
       })
     );
   } catch {
+    const errMsg = 'Unexpected error completing Microsoft sign-in.';
+    recordOAuthHandoff(stateRow.handoff_id, { ok: false, error: errMsg });
     return res.status(500).send(
       renderOAuthPopupHtml({
         ok: false,
         provider: 'microsoft',
-        error: 'Unexpected error completing Microsoft sign-in.',
+        error: errMsg,
         targetOrigin: stateRow.redirect_origin,
       })
     );

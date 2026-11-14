@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
+  Check,
   CheckCircle2,
   ClipboardCheck,
   Compass,
+  Copy,
+  ExternalLink,
   Eye,
   EyeOff,
   Lock,
@@ -108,59 +111,222 @@ export function AuthExperience({
 
   const [submitting, setSubmitting] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<'google' | 'microsoft' | null>(null);
+  const [activeOauthFlow, setActiveOauthFlow] = useState<{
+    provider: 'google' | 'microsoft';
+    url: string;
+    handoffId: string;
+  } | null>(null);
+  const [showTabFallback, setShowTabFallback] = useState(false);
+  const [openedInTab, setOpenedInTab] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [oauthSetupInfo, setOauthSetupInfo] = useState<{
     provider: 'Google' | 'Microsoft';
     missingEnvVars: string[];
     callbackUrl: string;
+    providerKey: 'google' | 'microsoft';
   } | null>(null);
 
   const [providersInfo, setProvidersInfo] = useState<OAuthProvidersPayload | null>(null);
   const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | null>(null);
 
-  useEffect(() => {
-    api
-      .getOAuthProviders()
-      .then((info) => setProvidersInfo(info))
-      .catch(() => {});
+  const preloadedOAuthRef = useRef<
+    Partial<Record<'google' | 'microsoft', { url: string; handoffId: string; fetchedAt: number }>>
+  >({});
+  const completingRef = useRef(false);
+  const popupRef = useRef<Window | null>(null);
+
+  const preloadProviderUrl = useCallback(async (provider: 'google' | 'microsoft') => {
+    try {
+      const res = await api.getOAuthUrl(provider, window.location.origin);
+      if (res.url && res.handoffId) {
+        preloadedOAuthRef.current[provider] = {
+          url: res.url,
+          handoffId: res.handoffId,
+          fetchedAt: Date.now(),
+        };
+      }
+    } catch {
+      delete preloadedOAuthRef.current[provider];
+    }
   }, []);
 
   useEffect(() => {
-    function handleOAuthMessage(event: MessageEvent) {
-      const payload = event.data as {
-        type?: string;
-        provider?: string;
-        token?: string | null;
-        error?: string;
-      } | null;
-      if (!payload || !payload.type) return;
+    let active = true;
+    api
+      .getOAuthProviders()
+      .then((info) => {
+        if (!active) return;
+        setProvidersInfo(info);
+        if (info.google.configured) void preloadProviderUrl('google');
+        if (info.microsoft.configured) void preloadProviderUrl('microsoft');
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [preloadProviderUrl]);
 
-      if (payload.type === 'OAUTH_AUTH_SUCCESS') {
-        setOauthLoading(null);
-        setError(null);
-        if (payload.token) {
-          api.setToken(payload.token, true);
+  const finishOAuthWithToken = useCallback(
+    (token: string | null | undefined) => {
+      if (completingRef.current) return;
+      completingRef.current = true;
+      setOauthLoading(null);
+      setActiveOauthFlow(null);
+      setShowTabFallback(false);
+      setOpenedInTab(false);
+      setError(null);
+
+      try {
+        if (popupRef.current && !popupRef.current.closed) {
+          popupRef.current.close();
         }
-        api
-          .me()
-          .then((res) => {
-            if (res.authenticated && res.dashboard) {
-              onSuccess(res.dashboard);
-            }
-          })
-          .catch(() => {
-            setError('Signed in via OAuth, but could not load your workspace. Please refresh.');
-          });
+      } catch {
+        // Ignore cross-origin close restrictions
+      }
+      popupRef.current = null;
+
+      if (token) {
+        api.setToken(token, true);
+      }
+      api
+        .me()
+        .then((res) => {
+          if (res.authenticated && res.dashboard) {
+            onSuccess(res.dashboard);
+          } else {
+            completingRef.current = false;
+            setError('Signed in via OAuth, but session verification failed. Please retry.');
+          }
+        })
+        .catch(() => {
+          completingRef.current = false;
+          setError('Signed in via OAuth, but could not load your workspace. Please refresh.');
+        });
+    },
+    [onSuccess]
+  );
+
+  const handleOAuthFailure = useCallback((message: string) => {
+    completingRef.current = false;
+    setOauthLoading(null);
+    setActiveOauthFlow(null);
+    setShowTabFallback(false);
+    setOpenedInTab(false);
+    popupRef.current = null;
+    setError(message || 'OAuth authentication was cancelled or failed.');
+  }, []);
+
+  useEffect(() => {
+    function handlePayload(payload: {
+      type?: string;
+      token?: string | null;
+      error?: string;
+    } | null) {
+      if (!payload || !payload.type) return;
+      if (payload.type === 'OAUTH_AUTH_SUCCESS') {
+        finishOAuthWithToken(payload.token);
       } else if (payload.type === 'OAUTH_AUTH_ERROR') {
-        setOauthLoading(null);
-        setError(payload.error || 'OAuth authentication was cancelled or failed.');
+        handleOAuthFailure(payload.error || 'OAuth authentication was cancelled or failed.');
       }
     }
 
+    function handleOAuthMessage(event: MessageEvent) {
+      const origin = event.origin || '';
+      if (
+        origin &&
+        origin !== window.location.origin &&
+        !origin.endsWith('.run.app') &&
+        !origin.includes('localhost')
+      ) {
+        return;
+      }
+      handlePayload(event.data as { type?: string; token?: string | null; error?: string } | null);
+    }
+
     window.addEventListener('message', handleOAuthMessage);
-    return () => window.removeEventListener('message', handleOAuthMessage);
-  }, [onSuccess]);
+
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('nexora_oauth_channel');
+        channel.onmessage = (ev) => {
+          handlePayload(ev.data as { type?: string; token?: string | null; error?: string } | null);
+        };
+      }
+    } catch {
+      channel = null;
+    }
+
+    return () => {
+      window.removeEventListener('message', handleOAuthMessage);
+      if (channel) {
+        try {
+          channel.close();
+        } catch {
+          // Ignore close errors
+        }
+      }
+    };
+  }, [finishOAuthWithToken, handleOAuthFailure]);
+
+  // Stall watchdog, popup-close watcher, and server handoff polling (survives COOP & new-tab flow)
+  useEffect(() => {
+    if (!activeOauthFlow) return;
+    let cancelled = false;
+
+    const stallTimer = window.setTimeout(() => {
+      if (!cancelled) {
+        setShowTabFallback(true);
+      }
+    }, 3500);
+
+    const pollTimer = window.setInterval(async () => {
+      if (cancelled || completingRef.current) return;
+      try {
+        const statusRes = await api.pollOAuthHandoff(activeOauthFlow.handoffId);
+        if (cancelled) return;
+        if (statusRes.status === 'SUCCESS') {
+          finishOAuthWithToken(statusRes.token);
+        } else if (statusRes.status === 'ERROR') {
+          handleOAuthFailure(statusRes.error || 'OAuth authentication failed.');
+        }
+      } catch {
+        // Ignore transient poll errors while user completes OAuth
+      }
+    }, 1500);
+
+    const closeWatcher = window.setInterval(() => {
+      if (cancelled || openedInTab) return;
+      const win = popupRef.current;
+      if (win && win.closed) {
+        window.clearInterval(closeWatcher);
+        // Give postMessage / handoff poll 500ms to settle before treating close as cancellation
+        window.setTimeout(() => {
+          if (!cancelled && !completingRef.current) {
+            setShowTabFallback(true);
+            setOauthLoading(null);
+          }
+        }, 500);
+      }
+    }, 600);
+
+    const expiryTimer = window.setTimeout(() => {
+      if (!cancelled && !completingRef.current) {
+        handleOAuthFailure('OAuth sign-in timed out. Please try again or use Open Sign-In in New Tab.');
+      }
+    }, 180_000);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(stallTimer);
+      window.clearInterval(pollTimer);
+      window.clearInterval(closeWatcher);
+      window.clearTimeout(expiryTimer);
+    };
+  }, [activeOauthFlow, openedInTab, finishOAuthWithToken, handleOAuthFailure]);
 
   function resetMessages() {
     setError(null);
@@ -168,47 +334,122 @@ export function AuthExperience({
     setOauthSetupInfo(null);
   }
 
+  function cancelActiveOAuth() {
+    completingRef.current = false;
+    setOauthLoading(null);
+    setActiveOauthFlow(null);
+    setShowTabFallback(false);
+    setOpenedInTab(false);
+    try {
+      if (popupRef.current && !popupRef.current.closed) {
+        popupRef.current.close();
+      }
+    } catch {
+      // Ignore
+    }
+    popupRef.current = null;
+  }
+
+  function showUnconfiguredSetup(provider: 'google' | 'microsoft', message?: string, callbackUrl?: string, missingEnvVars?: string[]) {
+    const providerLabel = provider === 'google' ? 'Google' : 'Microsoft';
+    const fallbackCallback =
+      callbackUrl ||
+      (provider === 'google' ? providersInfo?.google.callbackUrl : providersInfo?.microsoft.callbackUrl) ||
+      `${window.location.origin}/api/auth/oauth/${provider}/callback`;
+    const vars =
+      missingEnvVars && missingEnvVars.length > 0
+        ? missingEnvVars
+        : provider === 'google'
+          ? ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']
+          : ['MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_SECRET'];
+
+    setOauthSetupInfo({
+      provider: providerLabel,
+      providerKey: provider,
+      missingEnvVars: vars,
+      callbackUrl: fallbackCallback,
+    });
+    setError(
+      message ||
+        `${providerLabel} OAuth is not configured on this server. Add ${vars.join(' and ')} in AI Studio Settings > Secrets and register the callback URL below.`
+    );
+  }
+
+  async function copyText(key: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey((curr) => (curr === key ? null : curr)), 2000);
+    } catch {
+      // Ignore clipboard failures
+    }
+  }
+
   async function handleOAuthClick(provider: 'google' | 'microsoft') {
     resetMessages();
+    completingRef.current = false;
+    setShowTabFallback(false);
+    setOpenedInTab(false);
+
+    // Fast path: if server already told us this provider is not configured, show setup immediately (never open about:blank)
+    const providerMeta = provider === 'google' ? providersInfo?.google : providersInfo?.microsoft;
+    if (providerMeta && !providerMeta.configured) {
+      showUnconfiguredSetup(provider, undefined, providerMeta.callbackUrl, providerMeta.requiredEnvVars);
+      return;
+    }
+
+    // Synchronous launch path: use pre-fetched provider URL so window.open executes inside user gesture (prevents about:blank stall)
+    const cached = preloadedOAuthRef.current[provider];
+    const isFresh = cached && Date.now() - cached.fetchedAt < 4 * 60 * 1000;
+    if (isFresh && cached) {
+      delete preloadedOAuthRef.current[provider];
+      const popup = window.open(
+        cached.url,
+        `nexora_${provider}_oauth`,
+        'width=520,height=640,menubar=no,toolbar=no,status=no'
+      );
+      popupRef.current = popup;
+      setActiveOauthFlow({ provider, url: cached.url, handoffId: cached.handoffId });
+      setOauthLoading(provider);
+      if (!popup || popup.closed) {
+        setShowTabFallback(true);
+      }
+      window.setTimeout(() => {
+        void preloadProviderUrl(provider);
+      }, 300);
+      return;
+    }
+
+    // Async fallback if preload wasn't ready yet: fetch URL first, then open or present direct New Tab anchor
     setOauthLoading(provider);
     try {
       const res = await api.getOAuthUrl(provider, window.location.origin);
+      if (!res.url) {
+        throw new Error('Server did not return a valid OAuth URL.');
+      }
+      setActiveOauthFlow({ provider, url: res.url, handoffId: res.handoffId });
       const popup = window.open(
         res.url,
         `nexora_${provider}_oauth`,
         'width=520,height=640,menubar=no,toolbar=no,status=no'
       );
-      if (!popup) {
-        setOauthLoading(null);
-        setError('Popup window was blocked by your browser. Please allow popups for NEXORA.');
-        return;
+      popupRef.current = popup;
+      if (!popup || popup.closed) {
+        setShowTabFallback(true);
       }
-      const timer = window.setInterval(() => {
-        if (popup.closed) {
-          window.clearInterval(timer);
-          setOauthLoading((curr) => (curr === provider ? null : curr));
-        }
-      }, 600);
+      window.setTimeout(() => {
+        void preloadProviderUrl(provider);
+      }, 300);
     } catch (err) {
       setOauthLoading(null);
+      setActiveOauthFlow(null);
       if (err instanceof ApiError && err.status === 503) {
-        const providerLabel = provider === 'google' ? 'Google' : 'Microsoft';
-        setOauthSetupInfo({
-          provider: providerLabel,
-          missingEnvVars: Array.isArray(err.details.missingEnvVars)
-            ? (err.details.missingEnvVars as string[])
-            : provider === 'google'
-              ? ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']
-              : ['MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_SECRET'],
-          callbackUrl: String(
-            err.details.callbackUrl ||
-              (provider === 'google'
-                ? providersInfo?.google.callbackUrl
-                : providersInfo?.microsoft.callbackUrl) ||
-              `${window.location.origin}/api/auth/oauth/${provider}/callback`
-          ),
-        });
-        setError(err.message);
+        showUnconfiguredSetup(
+          provider,
+          err.message,
+          typeof err.details.callbackUrl === 'string' ? err.details.callbackUrl : undefined,
+          Array.isArray(err.details.missingEnvVars) ? (err.details.missingEnvVars as string[]) : undefined
+        );
       } else {
         setError(err instanceof Error ? err.message : 'Unable to start OAuth sign-in.');
       }
@@ -393,17 +634,38 @@ export function AuthExperience({
               </div>
 
               {error && (
-                <div className="mb-4 rounded-xl border border-[#D77B43] bg-[#D77B43]/10 px-3.5 py-2.5 text-xs text-[#24231F] space-y-1.5">
+                <div className="mb-4 rounded-xl border border-[#D77B43] bg-[#D77B43]/10 px-3.5 py-2.5 text-xs text-[#24231F] space-y-2">
                   <div className="font-medium">{error}</div>
                   {oauthSetupInfo && (
-                    <div className="pt-1 border-t border-[#D77B43]/30 text-[11px] space-y-1">
+                    <div className="pt-2 border-t border-[#D77B43]/30 text-[11px] space-y-2">
                       <div>
                         <strong>Required secrets:</strong>{' '}
                         <code className="font-mono">{oauthSetupInfo.missingEnvVars.join(', ')}</code>
                       </div>
-                      <div className="break-all">
-                        <strong>Callback URI:</strong>{' '}
-                        <code className="font-mono">{oauthSetupInfo.callbackUrl}</code>
+                      <div className="space-y-1">
+                        <div className="font-semibold">Authorized Callback URL:</div>
+                        <div className="flex items-center justify-between gap-2 rounded-lg border border-[#E8E3D8] bg-[#FDFBF6] px-2.5 py-1.5">
+                          <code className="font-mono text-[10px] break-all text-[#24231F]">
+                            {oauthSetupInfo.callbackUrl}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => copyText('cb-active', oauthSetupInfo.callbackUrl)}
+                            className="inline-flex items-center gap-1 shrink-0 rounded-md border border-[#E8E3D8] bg-white px-2 py-1 text-[10px] font-medium text-[#24231F] hover:bg-[#F8F6EF] cursor-pointer"
+                          >
+                            {copiedKey === 'cb-active' ? (
+                              <>
+                                <Check className="h-3 w-3 text-[#77764B]" />
+                                <span>Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3 w-3" />
+                                <span>Copy</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -445,6 +707,38 @@ export function AuthExperience({
                           : 'Continue with Microsoft'}
                       </span>
                     </button>
+
+                    {activeOauthFlow && (showTabFallback || oauthLoading !== null) && (
+                      <div className="rounded-xl border border-[#E8E3D8] bg-[#F8F6EF] p-3 text-xs text-[#24231F] space-y-2">
+                        <div className="font-medium">
+                          {showTabFallback
+                            ? `Popup stalled or blocked for ${activeOauthFlow.provider === 'google' ? 'Google' : 'Microsoft'} sign-in.`
+                            : `Waiting for ${activeOauthFlow.provider === 'google' ? 'Google' : 'Microsoft'} sign-in to finish…`}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <a
+                            href={activeOauthFlow.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => {
+                              setOpenedInTab(true);
+                              setOauthLoading(activeOauthFlow.provider);
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#E8B52E] px-3 py-1.5 text-xs font-semibold text-[#24231F] hover:bg-[#dca920] transition-colors whitespace-nowrap shrink-0"
+                          >
+                            <span>Open Sign-In in New Tab</span>
+                            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={cancelActiveOAuth}
+                            className="inline-flex items-center gap-1 rounded-lg border border-[#E8E3D8] bg-white px-3 py-1.5 text-xs font-medium text-[#77764B] hover:text-[#24231F] cursor-pointer whitespace-nowrap shrink-0"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="my-5 flex items-center gap-3">

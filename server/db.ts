@@ -319,6 +319,16 @@ export function runMigrations() {
       state TEXT PRIMARY KEY,
       provider TEXT NOT NULL,
       redirect_origin TEXT NOT NULL,
+      handoff_id TEXT,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS oauth_handoffs (
+      handoff_id TEXT PRIMARY KEY,
+      status TEXT NOT NULL,
+      session_token TEXT,
+      error_message TEXT,
       expires_at TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
@@ -375,6 +385,7 @@ export function runMigrations() {
   ensureColumn('learner_profiles', 'graduation_year', "TEXT NOT NULL DEFAULT ''");
   ensureColumn('learner_profiles', 'learning_goals_json', "TEXT NOT NULL DEFAULT '[]'");
   ensureColumn('learner_profiles', 'primary_goal', "TEXT NOT NULL DEFAULT ''");
+  ensureColumn('oauth_states', 'handoff_id', 'TEXT');
 }
 
 function ensureColumn(tableName: string, columnName: string, definition: string) {
