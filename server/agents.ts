@@ -26,18 +26,26 @@ export function getGeminiKeyConfigured(): boolean {
   return Boolean(apiKey && apiKey !== 'MY_GEMINI_API_KEY');
 }
 
+let cachedGeminiClient: { key: string; client: GoogleGenAI } | null = null;
+
 function getGeminiClient(): GoogleGenAI | null {
   if (!getGeminiKeyConfigured()) {
     return null;
   }
-  return new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY!.trim(),
+  const key = process.env.GEMINI_API_KEY!.trim();
+  if (cachedGeminiClient && cachedGeminiClient.key === key) {
+    return cachedGeminiClient.client;
+  }
+  const client = new GoogleGenAI({
+    apiKey: key,
     httpOptions: {
       headers: {
         'User-Agent': 'aistudio-build',
       },
     },
   });
+  cachedGeminiClient = { key, client };
+  return client;
 }
 
 // Zod validation schemas for agent outputs
@@ -100,7 +108,7 @@ async function invokeStructuredGemini<T>(
   responseSchema: Record<string, unknown>,
   zodSchema: z.ZodType<T>,
   fallback: () => T,
-  timeoutMs = 12_000
+  timeoutMs = 5_000
 ): Promise<{ result: T; usedAi: boolean; retried: boolean; error?: string }> {
   const ai = getGeminiClient();
   if (!ai) {
@@ -134,13 +142,16 @@ async function invokeStructuredGemini<T>(
       return { result: validated, usedAi: true, retried };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Gemini call failed';
-      const isTimeoutOrNetwork =
+      const upper = message.toUpperCase();
+      const isNonRetryable =
         message.startsWith('TIMEOUT:') ||
         message.includes('fetch failed') ||
         message.includes('ENOTFOUND') ||
-        message.includes('ECONNREFUSED');
+        message.includes('ECONNREFUSED') ||
+        upper.includes('RESOURCE_EXHAUSTED') ||
+        /\b429\b|\b403\b|\b404\b/.test(message);
 
-      if (isTimeoutOrNetwork) {
+      if (isNonRetryable) {
         return { result: fallback(), usedAi: false, retried, error: message };
       }
 
@@ -191,189 +202,191 @@ export async function runOrchestratorEvent(
   let lastError: string | null = null;
 
   try {
-    for (const agent of agentsInvoked) {
-      if (agent === 'SKILL_AUDITOR') {
-        const missingEvidence = readiness.skillGaps
-          .filter((g) => g.isUnassessed)
-          .map((g) => g.skillName);
-        const res = await invokeStructuredGemini(
-          `Audit learner skills against evidence. Learner: ${profile?.displayName}. Skills: ${JSON.stringify(
-            skills.map((s) => ({
-              name: s.skillName,
-              state: s.evidenceState,
-              proficiency: s.proficiency,
-            }))
-          )}. Evidence count: ${evidence.length}. Target Career: ${career.title}.`,
-          'You are NEXORA Agent 1: Skill Auditor. Never promote Declared skills to Demonstrated without evidence. Return concise JSON.',
-          {
-            type: Type.OBJECT,
-            properties: {
-              summary: { type: Type.STRING },
-              missingEvidenceSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
-              reassessmentRecommended: { type: Type.ARRAY, items: { type: Type.STRING } },
-              evidenceQualityNotes: { type: Type.STRING },
+    await Promise.all(
+      agentsInvoked.map(async (agent) => {
+        if (agent === 'SKILL_AUDITOR') {
+          const missingEvidence = readiness.skillGaps
+            .filter((g) => g.isUnassessed)
+            .map((g) => g.skillName);
+          const res = await invokeStructuredGemini(
+            `Audit learner skills against evidence. Learner: ${profile?.displayName}. Skills: ${JSON.stringify(
+              skills.map((s) => ({
+                name: s.skillName,
+                state: s.evidenceState,
+                proficiency: s.proficiency,
+              }))
+            )}. Evidence count: ${evidence.length}. Target Career: ${career.title}.`,
+            'You are NEXORA Agent 1: Skill Auditor. Never promote Declared skills to Demonstrated without evidence. Return concise JSON.',
+            {
+              type: Type.OBJECT,
+              properties: {
+                summary: { type: Type.STRING },
+                missingEvidenceSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
+                reassessmentRecommended: { type: Type.ARRAY, items: { type: Type.STRING } },
+                evidenceQualityNotes: { type: Type.STRING },
+              },
+              required: ['summary', 'missingEvidenceSkills', 'reassessmentRecommended', 'evidenceQualityNotes'],
             },
-            required: ['summary', 'missingEvidenceSkills', 'reassessmentRecommended', 'evidenceQualityNotes'],
-          },
-          SkillAuditSchema,
-          () => ({
-            summary: `Audited ${skills.length} skill records and ${evidence.length} evidence artifacts. ${missingEvidence.length} career skills still require assessment or project proof.`,
-            missingEvidenceSkills: missingEvidence.slice(0, 6),
-            reassessmentRecommended: skills
-              .filter((s) => s.needsReassessment)
-              .map((s) => s.skillName),
-            evidenceQualityNotes:
-              'Declared skills are held separately from Demonstrated/Validated evidence until verified by diagnostic scoring or practical review.',
-          })
-        );
-        if (res.retried) hadRetry = true;
-        if (res.error) lastError = res.error;
-        outputs.skillAuditor = res.result;
-      }
+            SkillAuditSchema,
+            () => ({
+              summary: `Audited ${skills.length} skill records and ${evidence.length} evidence artifacts. ${missingEvidence.length} career skills still require assessment or project proof.`,
+              missingEvidenceSkills: missingEvidence.slice(0, 6),
+              reassessmentRecommended: skills
+                .filter((s) => s.needsReassessment)
+                .map((s) => s.skillName),
+              evidenceQualityNotes:
+                'Declared skills are held separately from Demonstrated/Validated evidence until verified by diagnostic scoring or practical review.',
+            })
+          );
+          if (res.retried) hadRetry = true;
+          if (res.error) lastError = res.error;
+          outputs.skillAuditor = res.result;
+        }
 
-      if (agent === 'CAREER_ARCHITECT') {
-        const topGaps = readiness.priorityGaps.slice(0, 4).map((g) => g.skillName);
-        const transferables = readiness.transferableSkills.map((g) => g.skillName);
-        const res = await invokeStructuredGemini(
-          `Interpret deterministic career readiness (${readiness.readinessScore}%) for ${career.title}. Priority gaps: ${topGaps.join(', ')}. Transferable: ${transferables.join(', ')}.`,
-          'You are NEXORA Agent 2: Career Architect. Explain deterministic gaps and transferable skills without inventing scores.',
-          {
-            type: Type.OBJECT,
-            properties: {
-              summary: { type: Type.STRING },
-              topPriorityGaps: { type: Type.ARRAY, items: { type: Type.STRING } },
-              transferableStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-              readinessInterpretation: { type: Type.STRING },
+        if (agent === 'CAREER_ARCHITECT') {
+          const topGaps = readiness.priorityGaps.slice(0, 4).map((g) => g.skillName);
+          const transferables = readiness.transferableSkills.map((g) => g.skillName);
+          const res = await invokeStructuredGemini(
+            `Interpret deterministic career readiness (${readiness.readinessScore}%) for ${career.title}. Priority gaps: ${topGaps.join(', ')}. Transferable: ${transferables.join(', ')}.`,
+            'You are NEXORA Agent 2: Career Architect. Explain deterministic gaps and transferable skills without inventing scores.',
+            {
+              type: Type.OBJECT,
+              properties: {
+                summary: { type: Type.STRING },
+                topPriorityGaps: { type: Type.ARRAY, items: { type: Type.STRING } },
+                transferableStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+                readinessInterpretation: { type: Type.STRING },
+              },
+              required: ['summary', 'topPriorityGaps', 'transferableStrengths', 'readinessInterpretation'],
             },
-            required: ['summary', 'topPriorityGaps', 'transferableStrengths', 'readinessInterpretation'],
-          },
-          CareerArchitectSchema,
-          () => ({
-            summary: `${career.title} readiness is ${readiness.readinessScore}% based on weighted demonstrated evidence.`,
-            topPriorityGaps: topGaps,
-            transferableStrengths: transferables,
-            readinessInterpretation:
-              transferables.length > 0
-                ? `Preserved ${transferables.length} transferable competencies (${transferables.join(', ')}) so you do not restart from zero.`
-                : `Focus first on ${topGaps.slice(0, 2).join(' and ') || 'core foundations'} to reduce weighted skill gaps.`,
-          })
-        );
-        if (res.retried) hadRetry = true;
-        if (res.error) lastError = res.error;
-        outputs.careerArchitect = res.result;
-      }
+            CareerArchitectSchema,
+            () => ({
+              summary: `${career.title} readiness is ${readiness.readinessScore}% based on weighted demonstrated evidence.`,
+              topPriorityGaps: topGaps,
+              transferableStrengths: transferables,
+              readinessInterpretation:
+                transferables.length > 0
+                  ? `Preserved ${transferables.length} transferable competencies (${transferables.join(', ')}) so you do not restart from zero.`
+                  : `Focus first on ${topGaps.slice(0, 2).join(' and ') || 'core foundations'} to reduce weighted skill gaps.`,
+            })
+          );
+          if (res.retried) hadRetry = true;
+          if (res.error) lastError = res.error;
+          outputs.careerArchitect = res.result;
+        }
 
-      if (agent === 'PROGRESS_EVALUATOR') {
-        const weakConcepts =
-          event.type === 'POOR_ASSESSMENT'
-            ? event.weakConcepts
-            : attempts[0]?.weakConcepts ?? [];
-        const res = await invokeStructuredGemini(
-          `Evaluate learner assessment trend. Recent attempts: ${JSON.stringify(
-            attempts.slice(0, 5).map((a) => ({
-              skill: a.skillName,
-              score: a.scorePercent,
-              decision: a.adaptiveDecision,
-            }))
-          )}. Weak concepts: ${weakConcepts.join(', ')}.`,
-          'You are NEXORA Agent 4: Progress Evaluator. Detect weak concepts and determine whether remedial replanning is required.',
-          {
-            type: Type.OBJECT,
-            properties: {
-              summary: { type: Type.STRING },
-              trendStatus: { type: Type.STRING },
-              detectedWeakConcepts: { type: Type.ARRAY, items: { type: Type.STRING } },
-              replanRequired: { type: Type.BOOLEAN },
+        if (agent === 'PROGRESS_EVALUATOR') {
+          const weakConcepts =
+            event.type === 'POOR_ASSESSMENT'
+              ? event.weakConcepts
+              : attempts[0]?.weakConcepts ?? [];
+          const res = await invokeStructuredGemini(
+            `Evaluate learner assessment trend. Recent attempts: ${JSON.stringify(
+              attempts.slice(0, 5).map((a) => ({
+                skill: a.skillName,
+                score: a.scorePercent,
+                decision: a.adaptiveDecision,
+              }))
+            )}. Weak concepts: ${weakConcepts.join(', ')}.`,
+            'You are NEXORA Agent 4: Progress Evaluator. Detect weak concepts and determine whether remedial replanning is required.',
+            {
+              type: Type.OBJECT,
+              properties: {
+                summary: { type: Type.STRING },
+                trendStatus: { type: Type.STRING },
+                detectedWeakConcepts: { type: Type.ARRAY, items: { type: Type.STRING } },
+                replanRequired: { type: Type.BOOLEAN },
+              },
+              required: ['summary', 'trendStatus', 'detectedWeakConcepts', 'replanRequired'],
             },
-            required: ['summary', 'trendStatus', 'detectedWeakConcepts', 'replanRequired'],
-          },
-          ProgressEvaluatorSchema,
-          () => ({
-            summary:
-              event.type === 'POOR_ASSESSMENT'
-                ? `Assessment scored ${event.scorePercent}% (< 60%). Detected weak concepts: ${weakConcepts.join(', ') || 'core fundamentals'}.`
-                : 'Baseline progression analyzed from assessment history.',
-            trendStatus:
-              event.type === 'POOR_ASSESSMENT' && event.scorePercent < 60
-                ? 'NEEDS_REMEDIATION'
-                : 'BASELINE',
-            detectedWeakConcepts: weakConcepts,
-            replanRequired: event.type === 'POOR_ASSESSMENT' && event.scorePercent < 60,
-          })
-        );
-        if (res.retried) hadRetry = true;
-        if (res.error) lastError = res.error;
-        outputs.progressEvaluator = res.result;
-      }
+            ProgressEvaluatorSchema,
+            () => ({
+              summary:
+                event.type === 'POOR_ASSESSMENT'
+                  ? `Assessment scored ${event.scorePercent}% (< 60%). Detected weak concepts: ${weakConcepts.join(', ') || 'core fundamentals'}.`
+                  : 'Baseline progression analyzed from assessment history.',
+              trendStatus:
+                event.type === 'POOR_ASSESSMENT' && event.scorePercent < 60
+                  ? 'NEEDS_REMEDIATION'
+                  : 'BASELINE',
+              detectedWeakConcepts: weakConcepts,
+              replanRequired: event.type === 'POOR_ASSESSMENT' && event.scorePercent < 60,
+            })
+          );
+          if (res.retried) hadRetry = true;
+          if (res.error) lastError = res.error;
+          outputs.progressEvaluator = res.result;
+        }
 
-      if (agent === 'LEARNING_STRATEGIST') {
-        const roadmap = getRoadmapForUser(userId, career.id);
-        const focusOrder = roadmap.steps
-          .filter((s) => s.status !== 'COMPLETED')
-          .slice(0, 4)
-          .map((s) => s.skillName);
-        const weeklyHours = profile?.weeklyHours ?? 8;
+        if (agent === 'LEARNING_STRATEGIST') {
+          const roadmap = getRoadmapForUser(userId, career.id);
+          const focusOrder = roadmap.steps
+            .filter((s) => s.status !== 'COMPLETED')
+            .slice(0, 4)
+            .map((s) => s.skillName);
+          const weeklyHours = profile?.weeklyHours ?? 8;
 
-        const res = await invokeStructuredGemini(
-          `Build adaptive study strategy for ${career.title} at ${weeklyHours} hrs/week. Next roadmap steps: ${focusOrder.join(' -> ')}. Event: ${JSON.stringify(event)}.`,
-          'You are NEXORA Agent 3: Learning Strategist. Respect prerequisites and weekly study hours. Do not invent external course URLs.',
-          {
-            type: Type.OBJECT,
-            properties: {
-              summary: { type: Type.STRING },
-              recommendedFocusOrder: { type: Type.ARRAY, items: { type: Type.STRING } },
-              weeklyScheduleAdvice: { type: Type.STRING },
-              remedialAction: { type: Type.STRING },
+          const res = await invokeStructuredGemini(
+            `Build adaptive study strategy for ${career.title} at ${weeklyHours} hrs/week. Next roadmap steps: ${focusOrder.join(' -> ')}. Event: ${JSON.stringify(event)}.`,
+            'You are NEXORA Agent 3: Learning Strategist. Respect prerequisites and weekly study hours. Do not invent external course URLs.',
+            {
+              type: Type.OBJECT,
+              properties: {
+                summary: { type: Type.STRING },
+                recommendedFocusOrder: { type: Type.ARRAY, items: { type: Type.STRING } },
+                weeklyScheduleAdvice: { type: Type.STRING },
+                remedialAction: { type: Type.STRING },
+              },
+              required: ['summary', 'recommendedFocusOrder', 'weeklyScheduleAdvice', 'remedialAction'],
             },
-            required: ['summary', 'recommendedFocusOrder', 'weeklyScheduleAdvice', 'remedialAction'],
-          },
-          LearningStrategistSchema,
-          () => ({
-            summary: `Roadmap synchronized for ${career.title} (${weeklyHours} hrs/week). Next priorities: ${focusOrder.join(' → ')}.`,
-            recommendedFocusOrder: focusOrder,
-            weeklyScheduleAdvice: `At ${weeklyHours} hours/week, dedicate ~${Math.max(
-              2,
-              Math.round(weeklyHours * 0.6)
-            )}h to guided practice and ~${Math.max(
-              1,
-              Math.round(weeklyHours * 0.4)
-            )}h to diagnostic reassessment.`,
-            remedialAction:
-              event.type === 'POOR_ASSESSMENT'
-                ? `Inserted remedial revision module for ${event.skillId} targeting ${event.weakConcepts.join(', ') || 'core concepts'}.`
-                : 'Prerequisite order verified with zero circular dependencies.',
-          })
-        );
-        if (res.retried) hadRetry = true;
-        if (res.error) lastError = res.error;
-        outputs.learningStrategist = res.result;
-      }
+            LearningStrategistSchema,
+            () => ({
+              summary: `Roadmap synchronized for ${career.title} (${weeklyHours} hrs/week). Next priorities: ${focusOrder.join(' → ')}.`,
+              recommendedFocusOrder: focusOrder,
+              weeklyScheduleAdvice: `At ${weeklyHours} hours/week, dedicate ~${Math.max(
+                2,
+                Math.round(weeklyHours * 0.6)
+              )}h to guided practice and ~${Math.max(
+                1,
+                Math.round(weeklyHours * 0.4)
+              )}h to diagnostic reassessment.`,
+              remedialAction:
+                event.type === 'POOR_ASSESSMENT'
+                  ? `Inserted remedial revision module for ${event.skillId} targeting ${event.weakConcepts.join(', ') || 'core concepts'}.`
+                  : 'Prerequisite order verified with zero circular dependencies.',
+            })
+          );
+          if (res.retried) hadRetry = true;
+          if (res.error) lastError = res.error;
+          outputs.learningStrategist = res.result;
+        }
 
-      if (agent === 'ADAPTIVE_MENTOR') {
-        const weakLabel =
-          event.type === 'POOR_ASSESSMENT'
-            ? event.weakConcepts.join(', ') || 'foundational syntax'
-            : 'active roadmap concepts';
-        const guidanceMsg =
-          event.type === 'POOR_ASSESSMENT'
-            ? `I noticed your ${event.skillId} assessment scored ${event.scorePercent}%. Let's focus on ${weakLabel}. Here is a 3-step recovery plan:\n1. Review the remedial guide in your Learning Roadmap.\n2. Ask me for a Level 1 conceptual hint on ${weakLabel}.\n3. Retake the diagnostic once you feel ready.`
-            : `Your roadmap for ${career.title} has been updated. Ask me anytime for progressive hints without spoiling solutions.`;
+        if (agent === 'ADAPTIVE_MENTOR') {
+          const weakLabel =
+            event.type === 'POOR_ASSESSMENT'
+              ? event.weakConcepts.join(', ') || 'foundational syntax'
+              : 'active roadmap concepts';
+          const guidanceMsg =
+            event.type === 'POOR_ASSESSMENT'
+              ? `I noticed your ${event.skillId} assessment scored ${event.scorePercent}%. Let's focus on ${weakLabel}. Here is a 3-step recovery plan:\n1. Review the remedial guide in your Learning Roadmap.\n2. Ask me for a Level 1 conceptual hint on ${weakLabel}.\n3. Retake the diagnostic once you feel ready.`
+              : `Your roadmap for ${career.title} has been updated. Ask me anytime for progressive hints without spoiling solutions.`;
 
-        outputs.adaptiveMentor = {
-          guidanceNote: guidanceMsg,
-        };
-        db.prepare(
-          `INSERT INTO ai_interactions (id, user_id, role, message, hint_level, context_skill_id, created_at)
-           VALUES (?, ?, 'assistant', ?, 1, ?, ?)`
-        ).run(
-          `msg-${crypto.randomUUID()}`,
-          userId,
-          guidanceMsg,
-          event.type === 'POOR_ASSESSMENT' ? event.skillId : null,
-          new Date().toISOString()
-        );
-      }
-    }
+          outputs.adaptiveMentor = {
+            guidanceNote: guidanceMsg,
+          };
+          db.prepare(
+            `INSERT INTO ai_interactions (id, user_id, role, message, hint_level, context_skill_id, created_at)
+             VALUES (?, ?, 'assistant', ?, 1, ?, ?)`
+          ).run(
+            `msg-${crypto.randomUUID()}`,
+            userId,
+            guidanceMsg,
+            event.type === 'POOR_ASSESSMENT' ? event.skillId : null,
+            new Date().toISOString()
+          );
+        }
+      })
+    );
 
     const summaryParts = Object.values(outputs)
       .map((v) => (v && typeof v === 'object' && 'summary' in v ? String((v as { summary: string }).summary) : ''))
@@ -767,7 +780,7 @@ export async function synthesizeEntryLearnerProfile(
     },
     EntryProfileSummarySchema,
     fallbackSummary,
-    10_000
+    5_000
   );
 
   return {

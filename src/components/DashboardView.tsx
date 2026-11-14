@@ -99,7 +99,7 @@ export function DashboardView({
           <h1 className="font-serif text-3xl text-[#24231F]">
             Good morning, {firstName}
           </h1>
-          <p className="text-sm text-[#89877F] mt-1">
+          <p className="text-sm text-[#636159] mt-1">
             {domainMeta.name} · {profile.courseName}
             {profile.specialization ? ` (${profile.specialization})` : ''} ·{' '}
             {profile.semesterStage || profile.academicYear || 'Current Stage'} ·{' '}
@@ -152,7 +152,7 @@ export function DashboardView({
                 style={{ width: `${Math.max(4, readiness.readinessScore)}%` }}
               />
             </div>
-            <p className="text-xs text-[#89877F] mt-2">
+            <p className="text-xs text-[#636159] mt-2">
               Prototype readiness derived from Demonstrated &amp; Validated evidence only (excludes
               self-declared claims).
             </p>
@@ -173,19 +173,19 @@ export function DashboardView({
       <section className="grid grid-cols-2 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-2 rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-2xl font-bold text-[#24231F] tabular-nums">{totalSkillsInPlan}</div>
-          <div className="text-xs text-[#89877F] mt-1">Career Skills</div>
+          <div className="text-xs text-[#636159] mt-1">Career Skills</div>
         </div>
         <div className="lg:col-span-2 rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-2xl font-bold text-[#77764B] tabular-nums">{verifiedCount}</div>
-          <div className="text-xs text-[#89877F] mt-1">Proven Evidence</div>
+          <div className="text-xs text-[#636159] mt-1">Proven Evidence</div>
         </div>
         <div className="lg:col-span-2 rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-2xl font-bold text-[#D77B43] tabular-nums">{declaredCount}</div>
-          <div className="text-xs text-[#89877F] mt-1">Declared Only</div>
+          <div className="text-xs text-[#636159] mt-1">Declared Only</div>
         </div>
         <div className="lg:col-span-2 rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-2xl font-bold text-[#24231F] tabular-nums">{missingCount}</div>
-          <div className="text-xs text-[#89877F] mt-1">Unassessed</div>
+          <div className="text-xs text-[#636159] mt-1">Unassessed</div>
         </div>
 
         <div className="col-span-2 lg:col-span-4 rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4 flex items-center justify-between gap-4">
@@ -194,7 +194,7 @@ export function DashboardView({
             <div className="text-base font-semibold text-[#24231F] truncate mt-0.5">
               {nextStep ? nextStep.skillName : 'All Steps Complete'}
             </div>
-            <div className="text-xs text-[#89877F] flex items-center gap-1.5 mt-1 tabular-nums">
+            <div className="text-xs text-[#636159] flex items-center gap-1.5 mt-1 tabular-nums">
               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{nextStep ? `${nextStep.estimatedMinutes} mins` : 'Ready for review'}</span>
             </div>
@@ -261,7 +261,7 @@ export function DashboardView({
               <h2 className="text-lg font-semibold text-[#24231F]">
                 Skill Analysis (SkillProof)
               </h2>
-              <p className="text-xs text-[#89877F]">
+              <p className="text-xs text-[#636159]">
                 Declared claims vs. demonstrated evidence for {career.title}
               </p>
             </div>
@@ -279,7 +279,7 @@ export function DashboardView({
             <div className="md:col-span-8 overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#89877F]">
+                  <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#636159]">
                     <th className="py-2 pr-3">Skill</th>
                     <th className="py-2 px-2">Declared</th>
                     <th className="py-2 px-2">Evidence</th>
@@ -292,7 +292,7 @@ export function DashboardView({
                       <td className="py-2 pr-3 font-medium text-[#24231F] whitespace-nowrap">
                         {item.skillName}
                       </td>
-                      <td className="py-2 px-2 text-xs text-[#89877F] whitespace-nowrap">
+                      <td className="py-2 px-2 text-xs text-[#636159] whitespace-nowrap">
                         {item.declaredLevel}
                       </td>
                       <td className="py-2 px-2">
@@ -350,10 +350,10 @@ export function DashboardView({
                   <span className="text-2xl font-bold text-[#24231F] tabular-nums">
                     {readiness.readinessScore}%
                   </span>
-                  <span className="text-[11px] text-[#89877F]">Skill Match</span>
+                  <span className="text-[11px] text-[#636159]">Skill Match</span>
                 </div>
               </div>
-              <div className="mt-2 space-y-1 text-xs text-[#89877F]">
+              <div className="mt-2 space-y-1 text-xs text-[#636159]">
                 <div>Proven: {verifiedCount}</div>
                 <div>Declared Only: {declaredCount}</div>
                 <div>Unassessed: {missingCount}</div>
@@ -367,7 +367,7 @@ export function DashboardView({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-[#24231F]">Skill Dependency Map</h2>
-              <p className="text-xs text-[#89877F]">
+              <p className="text-xs text-[#636159]">
                 Prerequisite-validated learning sequence
               </p>
             </div>
@@ -398,7 +398,7 @@ export function DashboardView({
                     {proven ? (
                       <CheckCircle2 className="h-4 w-4 text-[#77764B] shrink-0" aria-hidden="true" />
                     ) : isLocked ? (
-                      <Lock className="h-4 w-4 text-[#89877F] shrink-0" aria-hidden="true" />
+                      <Lock className="h-4 w-4 text-[#636159] shrink-0" aria-hidden="true" />
                     ) : (
                       <Play className="h-4 w-4 text-[#D77B43] shrink-0" aria-hidden="true" />
                     )}
@@ -406,7 +406,7 @@ export function DashboardView({
                       <div className="text-sm font-semibold text-[#24231F] truncate">
                         {node.skillName}
                       </div>
-                      <div className="text-[11px] text-[#89877F] truncate">
+                      <div className="text-[11px] text-[#636159] truncate">
                         {node.prerequisites.length > 0
                           ? `Requires: ${node.prerequisites.join(', ')}`
                           : 'Foundational entry skill'}
@@ -429,7 +429,7 @@ export function DashboardView({
           <div className="flex items-center justify-between gap-4 mb-4">
             <div>
               <h2 className="text-lg font-semibold text-[#24231F]">Your Learning Roadmap</h2>
-              <p className="text-xs text-[#89877F]">
+              <p className="text-xs text-[#636159]">
                 Adaptive sequence: LEARN → PRACTICE → ASSESS → DEMONSTRATE
               </p>
             </div>
@@ -454,14 +454,14 @@ export function DashboardView({
                 }`}
               >
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-xs text-[#89877F]">
+                  <div className="flex items-center gap-2 text-xs text-[#636159]">
                     <span className="font-semibold text-[#24231F] tabular-nums">
                       Phase 0{p.phaseNumber}
                     </span>
                     <span aria-hidden="true">·</span>
                     <span className="truncate">{p.title}</span>
                   </div>
-                  <div className="text-xs text-[#89877F] mt-0.5 truncate">{p.subtitle}</div>
+                  <div className="text-xs text-[#636159] mt-0.5 truncate">{p.subtitle}</div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-3">
                   <span className="text-xs font-mono tabular-nums text-[#24231F]">
@@ -470,7 +470,7 @@ export function DashboardView({
                   {p.state === 'completed' ? (
                     <CheckCircle2 className="h-4 w-4 text-[#77764B]" />
                   ) : p.state === 'locked' ? (
-                    <Lock className="h-4 w-4 text-[#89877F]" />
+                    <Lock className="h-4 w-4 text-[#636159]" />
                   ) : (
                     <Play className="h-4 w-4 text-[#D77B43]" />
                   )}
@@ -488,7 +488,7 @@ export function DashboardView({
               </h2>
               <Sparkles className="h-4 w-4 text-[#E8B52E]" aria-hidden="true" />
             </div>
-            <p className="text-xs text-[#89877F]">
+            <p className="text-xs text-[#636159]">
               Latest coordinated orchestrator run across NEXORA’s five specialized agents:
             </p>
             <div className="mt-4 rounded-xl border border-[#E8E3D8] bg-white p-4">
@@ -502,7 +502,7 @@ export function DashboardView({
                   </p>
                 </>
               ) : (
-                <p className="text-sm text-[#89877F]">
+                <p className="text-sm text-[#636159]">
                   Complete an assessment or update your profile to trigger adaptive orchestration.
                 </p>
               )}

@@ -76,7 +76,7 @@ export function CareerExplorerView({ dashboard, onUpdated }: CareerExplorerViewP
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl text-[#24231F]">Career Explorer</h1>
-          <p className="text-sm text-[#89877F] mt-1">
+          <p className="text-sm text-[#636159] mt-1">
             Structured industry profiles with weighted requirements. Switch goals anytime without
             losing verified skill evidence.
           </p>
@@ -91,7 +91,7 @@ export function CareerExplorerView({ dashboard, onUpdated }: CareerExplorerViewP
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
                 filter === cat
                   ? 'bg-[#E8B52E] text-[#24231F]'
-                  : 'text-[#89877F] hover:text-[#24231F]'
+                  : 'text-[#636159] hover:text-[#24231F]'
               }`}
             >
               {cat}
@@ -135,7 +135,7 @@ export function CareerExplorerView({ dashboard, onUpdated }: CareerExplorerViewP
                   />
                 </div>
                 <div className="p-5">
-                  <div className="flex items-center justify-between gap-2 text-xs text-[#89877F]">
+                  <div className="flex items-center justify-between gap-2 text-xs text-[#636159]">
                     <span>
                       {career.category} · {career.demandLabel}
                     </span>
@@ -151,7 +151,7 @@ export function CareerExplorerView({ dashboard, onUpdated }: CareerExplorerViewP
               </div>
 
               <div className="px-5 pb-5 pt-2 flex items-center justify-between gap-3 border-t border-[#E8E3D8]/60">
-                <div className="text-xs text-[#89877F]">
+                <div className="text-xs text-[#636159]">
                   Est. Readiness:{' '}
                   <strong className="text-[#24231F] font-mono tabular-nums">
                     {sim.readinessScore}%
@@ -225,7 +225,7 @@ export function CareerExplorerView({ dashboard, onUpdated }: CareerExplorerViewP
         <div className="mt-5 overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#89877F]">
+              <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#636159]">
                 <th className="py-2 pr-3">Required Skill</th>
                 <th className="py-2 px-2">Target (R)</th>
                 <th className="py-2 px-2">Weight (W)</th>
@@ -247,7 +247,7 @@ export function CareerExplorerView({ dashboard, onUpdated }: CareerExplorerViewP
                     <td className="py-2 px-2 font-mono tabular-nums">
                       {g.demonstratedProficiency}/5 ({g.evidenceState})
                     </td>
-                    <td className="py-2 px-2 text-[#89877F]">
+                    <td className="py-2 px-2 text-[#636159]">
                       {req?.prerequisites.length ? req.prerequisites.join(', ') : 'None'}
                     </td>
                     <td className="py-2 pl-2 text-[#24231F]/80">{req?.practicalExpectation}</td>

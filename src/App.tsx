@@ -1,24 +1,48 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { ApiError, api, type DashboardPayload } from './lib/api';
 import { AuthExperience } from './components/AuthExperience';
-import { OnboardingWizard } from './components/OnboardingWizard';
 import { type NavPage, SidebarShell } from './components/SidebarShell';
-import { DashboardView } from './components/DashboardView';
-import { SkillProofView } from './components/SkillProofView';
-import { CareerExplorerView } from './components/CareerExplorerView';
-import { LearningRoadmapView } from './components/LearningRoadmapView';
-import { NexoraPlayView } from './components/NexoraPlayView';
-import { AiMentorView } from './components/AiMentorView';
-import { ProjectsView } from './components/ProjectsView';
-import { CareerReadinessView } from './components/CareerReadinessView';
-import { ProfileSettingsView } from './components/ProfileSettingsView';
-import { AssessmentModal } from './components/AssessmentModal';
 import {
   AppErrorBoundary,
   BrandedErrorPage,
   BrandedLoader,
+  DashboardSkeleton,
   type SystemErrorKind,
 } from './components/SystemStates';
+
+const OnboardingWizard = lazy(() =>
+  import('./components/OnboardingWizard').then((m) => ({ default: m.OnboardingWizard }))
+);
+const DashboardView = lazy(() =>
+  import('./components/DashboardView').then((m) => ({ default: m.DashboardView }))
+);
+const SkillProofView = lazy(() =>
+  import('./components/SkillProofView').then((m) => ({ default: m.SkillProofView }))
+);
+const CareerExplorerView = lazy(() =>
+  import('./components/CareerExplorerView').then((m) => ({ default: m.CareerExplorerView }))
+);
+const LearningRoadmapView = lazy(() =>
+  import('./components/LearningRoadmapView').then((m) => ({ default: m.LearningRoadmapView }))
+);
+const NexoraPlayView = lazy(() =>
+  import('./components/NexoraPlayView').then((m) => ({ default: m.NexoraPlayView }))
+);
+const AiMentorView = lazy(() =>
+  import('./components/AiMentorView').then((m) => ({ default: m.AiMentorView }))
+);
+const ProjectsView = lazy(() =>
+  import('./components/ProjectsView').then((m) => ({ default: m.ProjectsView }))
+);
+const CareerReadinessView = lazy(() =>
+  import('./components/CareerReadinessView').then((m) => ({ default: m.CareerReadinessView }))
+);
+const ProfileSettingsView = lazy(() =>
+  import('./components/ProfileSettingsView').then((m) => ({ default: m.ProfileSettingsView }))
+);
+const AssessmentModal = lazy(() =>
+  import('./components/AssessmentModal').then((m) => ({ default: m.AssessmentModal }))
+);
 
 const KNOWN_PATHS = new Set([
   '/',
@@ -215,15 +239,24 @@ export default function App() {
   if (!dashboard.profile.onboardingCompleted) {
     return (
       <AppErrorBoundary onReset={() => setActivePage('dashboard')}>
-        <OnboardingWizard
-          dashboard={dashboard}
-          onUpdated={setDashboard}
-          onComplete={(nextDashboard) => {
-            setDashboard(nextDashboard);
-            setActivePage('dashboard');
-          }}
-          onLogout={handleLogout}
-        />
+        <Suspense
+          fallback={
+            <BrandedLoader
+              message="Loading onboarding workspace..."
+              submessage="Preparing academic domains and baseline assessment"
+            />
+          }
+        >
+          <OnboardingWizard
+            dashboard={dashboard}
+            onUpdated={setDashboard}
+            onComplete={(nextDashboard) => {
+              setDashboard(nextDashboard);
+              setActivePage('dashboard');
+            }}
+            onLogout={handleLogout}
+          />
+        </Suspense>
       </AppErrorBoundary>
     );
   }
@@ -239,53 +272,57 @@ export default function App() {
         levelName={dashboard.gamification.level.name}
         onLogout={handleLogout}
       >
-        {activePage === 'dashboard' && (
-          <DashboardView
-            dashboard={dashboard}
-            onNavigate={handleNavigate}
-            onStartAssessment={(skillId) => setAssessmentSkillId(skillId)}
-          />
-        )}
-        {activePage === 'skillproof' && (
-          <SkillProofView
-            dashboard={dashboard}
-            onUpdated={setDashboard}
-            onStartAssessment={(skillId) => setAssessmentSkillId(skillId)}
-          />
-        )}
-        {activePage === 'careers' && (
-          <CareerExplorerView dashboard={dashboard} onUpdated={setDashboard} />
-        )}
-        {activePage === 'roadmap' && (
-          <LearningRoadmapView
-            dashboard={dashboard}
-            onUpdated={setDashboard}
-            onStartAssessment={(skillId) => setAssessmentSkillId(skillId)}
-          />
-        )}
-        {activePage === 'play' && (
-          <NexoraPlayView dashboard={dashboard} onUpdated={setDashboard} />
-        )}
-        {activePage === 'mentor' && <AiMentorView dashboard={dashboard} />}
-        {activePage === 'projects' && (
-          <ProjectsView dashboard={dashboard} onUpdated={setDashboard} />
-        )}
-        {activePage === 'readiness' && <CareerReadinessView dashboard={dashboard} />}
-        {activePage === 'profile' && (
-          <ProfileSettingsView mode="profile" dashboard={dashboard} onUpdated={setDashboard} />
-        )}
-        {activePage === 'settings' && (
-          <ProfileSettingsView mode="settings" dashboard={dashboard} onUpdated={setDashboard} />
-        )}
+        <Suspense fallback={<DashboardSkeleton />}>
+          {activePage === 'dashboard' && (
+            <DashboardView
+              dashboard={dashboard}
+              onNavigate={handleNavigate}
+              onStartAssessment={(skillId) => setAssessmentSkillId(skillId)}
+            />
+          )}
+          {activePage === 'skillproof' && (
+            <SkillProofView
+              dashboard={dashboard}
+              onUpdated={setDashboard}
+              onStartAssessment={(skillId) => setAssessmentSkillId(skillId)}
+            />
+          )}
+          {activePage === 'careers' && (
+            <CareerExplorerView dashboard={dashboard} onUpdated={setDashboard} />
+          )}
+          {activePage === 'roadmap' && (
+            <LearningRoadmapView
+              dashboard={dashboard}
+              onUpdated={setDashboard}
+              onStartAssessment={(skillId) => setAssessmentSkillId(skillId)}
+            />
+          )}
+          {activePage === 'play' && (
+            <NexoraPlayView dashboard={dashboard} onUpdated={setDashboard} />
+          )}
+          {activePage === 'mentor' && <AiMentorView dashboard={dashboard} />}
+          {activePage === 'projects' && (
+            <ProjectsView dashboard={dashboard} onUpdated={setDashboard} />
+          )}
+          {activePage === 'readiness' && <CareerReadinessView dashboard={dashboard} />}
+          {activePage === 'profile' && (
+            <ProfileSettingsView mode="profile" dashboard={dashboard} onUpdated={setDashboard} />
+          )}
+          {activePage === 'settings' && (
+            <ProfileSettingsView mode="settings" dashboard={dashboard} onUpdated={setDashboard} />
+          )}
+        </Suspense>
       </SidebarShell>
 
       {assessmentSkillId && (
-        <AssessmentModal
-          skillId={assessmentSkillId}
-          onClose={() => setAssessmentSkillId(null)}
-          onUpdated={setDashboard}
-          onNavigate={handleNavigate}
-        />
+        <Suspense fallback={null}>
+          <AssessmentModal
+            skillId={assessmentSkillId}
+            onClose={() => setAssessmentSkillId(null)}
+            onUpdated={setDashboard}
+            onNavigate={handleNavigate}
+          />
+        </Suspense>
       )}
     </AppErrorBoundary>
   );

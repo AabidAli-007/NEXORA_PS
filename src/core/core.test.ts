@@ -152,6 +152,12 @@ test('GitHub URL validator blocks SSRF / private hosts and allows valid public r
   assert.equal(validateGitHubRepoUrl('https://127.0.0.1/a/b').valid, false);
   assert.equal(validateGitHubRepoUrl('https://169.254.169.254/latest/meta-data').valid, false);
   assert.equal(validateGitHubRepoUrl('https://evil.com/owner/repo').valid, false);
+  assert.equal(validateGitHubRepoUrl('https://user:pass@github.com/a/b').valid, false);
+  assert.equal(validateGitHubRepoUrl('https://[::ffff:127.0.0.1]/a/b').valid, false);
+  assert.equal(validateGitHubRepoUrl('https://0x7f000001/a/b').valid, false);
+  assert.equal(validateGitHubRepoUrl('https://metadata.google.internal/a/b').valid, false);
+  assert.equal(validateGitHubRepoUrl('https://service.local/a/b').valid, false);
+  assert.equal(validateGitHubRepoUrl(`https://github.com/a/${'x'.repeat(520)}`).valid, false);
 
   const ok = validateGitHubRepoUrl('https://github.com/facebook/react');
   assert.equal(ok.valid, true);

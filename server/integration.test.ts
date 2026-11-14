@@ -491,4 +491,56 @@ test('email verification, password reset, OAuth honest config check, resumable 5
 
   const histAfterClear = await apiReq('/api/mentor/history', { token: freshToken });
   assert.equal(histAfterClear.data.messages.length, 0);
+
+  // 6. Security & Efficiency Hardening Checks
+  // 6a. Reset token cannot be reused after password reset
+  const reuseReset = await apiReq('/api/auth/reset-password', {
+    method: 'POST',
+    body: { token: resetToken, newPassword: 'AnotherPassword789!' },
+  });
+  assert.equal(reuseReset.status, 400);
+
+  // 6b. Security headers present and x-powered-by stripped
+  const secHeadersResp = await fetch(`${BASE_URL}/api/health`);
+  assert.equal(secHeadersResp.status, 200);
+  assert.equal(secHeadersResp.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(secHeadersResp.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+  assert.equal(secHeadersResp.headers.get('x-powered-by'), null);
+
+  // 6c. Cross-origin untrusted POST rejected by CSRF origin guard (403)
+  const csrfBlocked = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Origin: 'https://evil-attacker.example.com',
+    },
+    body: JSON.stringify({ email, password: 'NewPassword456!' }),
+  });
+  assert.equal(csrfBlocked.status, 403);
+
+  // 6d. Malformed JSON returns 400 without leaking stack traces
+  const badJson = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"email": "broken',
+  });
+  assert.equal(badJson.status, 400);
+  const badJsonText = await badJson.text();
+  assert.equal(/at Function|node_modules|\.ts:/i.test(badJsonText), false);
+
+  // 6e. Gzip compression active on large JSON payload & fast response latency (< 500ms)
+  const t0 = performance.now();
+  const gzDash = await fetch(`${BASE_URL}/api/dashboard`, {
+    headers: {
+      Authorization: `Bearer ${freshToken}`,
+      'Accept-Encoding': 'gzip',
+    },
+  });
+  const elapsedMs = performance.now() - t0;
+  assert.equal(gzDash.status, 200);
+  assert.equal(gzDash.headers.get('content-encoding'), 'gzip');
+  assert.ok(elapsedMs < 500, `Expected dashboard response < 500ms, got ${elapsedMs.toFixed(1)}ms`);
+  const gzJson = await gzDash.json();
+  assert.ok(gzJson.profile && gzJson.career);
 });
+

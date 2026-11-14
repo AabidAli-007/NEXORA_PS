@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import zlib from 'node:zlib';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
@@ -23,13 +24,16 @@ import {
 import {
   type AuthenticatedRequest,
   createSession,
+  csrfOriginGuard,
   deleteSession,
   getCookieOptions,
   rateLimit,
   requireAuth,
   resolvePublicBaseUrl,
   resolveUserFromRequest,
+  securityHeadersMiddleware,
   SESSION_COOKIE_NAME,
+  timingSafeHexEqual,
 } from './server/auth';
 import {
   askAdaptiveMentor,
@@ -64,11 +68,42 @@ import { sanitizeUntrustedPromptText, validateGitHubRepoUrl } from './src/core/s
 import { arePrerequisitesMet, validateDependencyGraph } from './src/core/dependencies';
 
 const app = express();
+app.disable('x-powered-by');
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '1mb' }));
+app.use(securityHeadersMiddleware);
+app.use(express.json({ limit: '512kb' }));
 app.use(cookieParser());
+app.use('/api', csrfOriginGuard);
+app.use('/api', (req, res, next) => {
+  const acceptEncoding = String(req.headers['accept-encoding'] || '');
+  if (!acceptEncoding.includes('gzip')) {
+    return next();
+  }
+  const origJson = res.json.bind(res);
+  res.json = ((body: unknown) => {
+    const jsonStr = JSON.stringify(body);
+    if (!jsonStr || Buffer.byteLength(jsonStr, 'utf8') < 1024 || res.headersSent) {
+      return origJson(body);
+    }
+    const gz = zlib.gzipSync(jsonStr);
+    res.setHeader('Content-Encoding', 'gzip');
+    res.setHeader('Vary', 'Accept-Encoding');
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return res.send(gz);
+  }) as typeof res.json;
+  return next();
+});
 
 const isProd = process.env.NODE_ENV === 'production';
+
+app.get('/api/health', (_req, res) => {
+  try {
+    db.prepare('SELECT 1').get();
+    return res.json({ ok: true, service: 'nexora' });
+  } catch {
+    return res.status(503).json({ ok: false, error: 'Database unavailable' });
+  }
+});
 
 function setSessionCookie(
   req: express.Request,
@@ -487,7 +522,7 @@ app.post('/api/auth/verify-email', requireAuth, rateLimit(20, 60_000), (req: Aut
   if (!row || new Date(row.expires_at).getTime() < Date.now()) {
     return res.status(400).json({ error: 'Verification code expired or not found. Request a new code.' });
   }
-  if (sha256Hex(parsed.data.code) !== row.code_hash) {
+  if (!timingSafeHexEqual(sha256Hex(parsed.data.code), row.code_hash)) {
     return res.status(400).json({ error: 'Invalid verification code. Check your 6-digit code and try again.' });
   }
 
@@ -2730,7 +2765,21 @@ app.get('/api/institutional/analytics', requireAuth, (_req, res) => {
   });
 });
 
-// ---------------- VITE / STATIC SERVER ----------------
+// ---------------- SANITIZED ERROR MIDDLEWARE & VITE / STATIC SERVER ----------------
+
+app.all('/api/*', (_req, res) => {
+  return res.status(404).json({ error: 'API endpoint not found.' });
+});
+
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err && typeof err === 'object' && 'type' in err && (err as { type?: string }).type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Malformed JSON request body.' });
+  }
+  if (err && typeof err === 'object' && 'type' in err && (err as { type?: string }).type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Request payload exceeds maximum allowed size.' });
+  }
+  return res.status(500).json({ error: 'Internal server error.' });
+});
 
 async function startServer() {
   if (!isProd) {
@@ -2741,8 +2790,19 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distDir = path.resolve(process.cwd(), 'dist');
-    app.use(express.static(distDir));
+    app.use(
+      express.static(distDir, {
+        maxAge: '365d',
+        immutable: true,
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
+        },
+      })
+    );
     app.get('*', (_req, res) => {
+      res.setHeader('Cache-Control', 'no-cache');
       res.sendFile(path.join(distDir, 'index.html'));
     });
   }

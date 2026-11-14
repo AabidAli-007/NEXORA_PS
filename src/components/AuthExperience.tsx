@@ -154,6 +154,17 @@ export function AuthExperience({
   }, []);
 
   useEffect(() => {
+    if (!legalModal) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setLegalModal(null);
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [legalModal]);
+
+  useEffect(() => {
     let active = true;
     api
       .getOAuthProviders()
@@ -579,7 +590,7 @@ export function AuthExperience({
                     </span>
                     <div>
                       <div className="text-sm font-semibold text-[#24231F]">{item.title}</div>
-                      <div className="text-xs text-[#89877F]">{item.detail}</div>
+                      <div className="text-xs text-[#636159]">{item.detail}</div>
                     </div>
                   </div>
                 );
@@ -597,17 +608,17 @@ export function AuthExperience({
                 <div className="text-xs font-semibold text-[#24231F]">
                   Explore with seeded demo learner (Aabid Rahman)
                 </div>
-                <p className="text-xs text-[#89877F]">
+                <p className="text-xs text-[#636159]">
                   Preview verified skills, SkillProof audit history, and multi-turn AI Mentor immediately.
                 </p>
                 <button
                   type="button"
                   onClick={onStartDemo}
                   disabled={demoLoading}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#24231F] hover:text-[#77764B] underline underline-offset-4 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#24231F] hover:text-[#61603B] underline underline-offset-4 cursor-pointer"
                 >
                   <span>{demoLoading ? 'Preparing Demo Workspace…' : 'Launch Demo Learner'}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -624,7 +635,7 @@ export function AuthExperience({
                   {mode === 'forgot' && 'Recover Your Password'}
                   {mode === 'reset' && 'Set a New Password'}
                 </h2>
-                <p className="text-xs sm:text-sm text-[#89877F] mt-1">
+                <p className="text-xs sm:text-sm text-[#636159] mt-1">
                   {mode === 'login' && 'Sign in to continue your learning journey'}
                   {mode === 'register' && 'Start your domain-adaptive career & study roadmap'}
                   {mode === 'verify-email' && 'Confirm your 6-digit verification code to secure your account'}
@@ -634,7 +645,10 @@ export function AuthExperience({
               </div>
 
               {error && (
-                <div className="mb-4 rounded-xl border border-[#D77B43] bg-[#D77B43]/10 px-3.5 py-2.5 text-xs text-[#24231F] space-y-2">
+                <div
+                  role="alert"
+                  className="mb-4 rounded-xl border border-[#D77B43] bg-[#D77B43]/10 px-3.5 py-2.5 text-xs text-[#24231F] space-y-2"
+                >
                   <div className="font-medium">{error}</div>
                   {oauthSetupInfo && (
                     <div className="pt-2 border-t border-[#D77B43]/30 text-[11px] space-y-2">
@@ -655,12 +669,12 @@ export function AuthExperience({
                           >
                             {copiedKey === 'cb-active' ? (
                               <>
-                                <Check className="h-3 w-3 text-[#77764B]" />
+                                <Check className="h-3 w-3 text-[#61603B]" aria-hidden="true" />
                                 <span>Copied</span>
                               </>
                             ) : (
                               <>
-                                <Copy className="h-3 w-3" />
+                                <Copy className="h-3 w-3" aria-hidden="true" />
                                 <span>Copy</span>
                               </>
                             )}
@@ -673,7 +687,11 @@ export function AuthExperience({
               )}
 
               {notice && (
-                <div className="mb-4 rounded-xl border border-[#77764B]/40 bg-[#77764B]/10 px-3.5 py-2.5 text-xs text-[#24231F]">
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="mb-4 rounded-xl border border-[#77764B]/40 bg-[#77764B]/10 px-3.5 py-2.5 text-xs text-[#24231F]"
+                >
                   {notice}
                 </div>
               )}
@@ -743,7 +761,7 @@ export function AuthExperience({
 
                   <div className="my-5 flex items-center gap-3">
                     <div className="h-px flex-1 bg-[#E8E3D8]" />
-                    <span className="text-xs text-[#89877F]">
+                    <span className="text-xs text-[#636159]">
                       {mode === 'login' ? 'or sign in with email' : 'or register with email'}
                     </span>
                     <div className="h-px flex-1 bg-[#E8E3D8]" />
@@ -757,7 +775,7 @@ export function AuthExperience({
                         </label>
                         <div className="relative">
                           <User
-                            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#89877F]"
+                            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#636159]"
                             aria-hidden="true"
                           />
                           <input
@@ -780,7 +798,7 @@ export function AuthExperience({
                       </label>
                       <div className="relative">
                         <Mail
-                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#89877F]"
+                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#636159]"
                           aria-hidden="true"
                         />
                         <input
@@ -802,7 +820,7 @@ export function AuthExperience({
                       </label>
                       <div className="relative">
                         <Lock
-                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#89877F]"
+                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#636159]"
                           aria-hidden="true"
                         />
                         <input
@@ -820,9 +838,9 @@ export function AuthExperience({
                           type="button"
                           onClick={() => setShowPassword((v) => !v)}
                           aria-label={showPassword ? 'Hide password' : 'Show password'}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#89877F] hover:text-[#24231F] cursor-pointer"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#636159] hover:text-[#24231F] cursor-pointer"
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                         </button>
                       </div>
                     </div>
@@ -845,7 +863,7 @@ export function AuthExperience({
                             resetMessages();
                             setMode('forgot');
                           }}
-                          className="font-medium text-[#D77B43] hover:underline cursor-pointer"
+                          className="font-medium text-[#A34E1D] hover:underline cursor-pointer"
                         >
                           Forgot password?
                         </button>
@@ -864,11 +882,11 @@ export function AuthExperience({
                             ? 'Sign In'
                             : 'Create Account'}
                       </span>
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </form>
 
-                  <div className="mt-5 text-center text-xs text-[#89877F]">
+                  <div className="mt-5 text-center text-xs text-[#636159]">
                     {mode === 'login' ? (
                       <>
                         Don&apos;t have an account?{' '}
@@ -878,7 +896,7 @@ export function AuthExperience({
                             resetMessages();
                             setMode('register');
                           }}
-                          className="font-semibold text-[#D77B43] hover:underline cursor-pointer"
+                          className="font-semibold text-[#A34E1D] hover:underline cursor-pointer"
                         >
                           Create account
                         </button>
@@ -892,7 +910,7 @@ export function AuthExperience({
                             resetMessages();
                             setMode('login');
                           }}
-                          className="font-semibold text-[#D77B43] hover:underline cursor-pointer"
+                          className="font-semibold text-[#A34E1D] hover:underline cursor-pointer"
                         >
                           Sign in
                         </button>
@@ -965,7 +983,7 @@ export function AuthExperience({
                       <button
                         type="button"
                         onClick={() => onSuccess(pendingDash)}
-                        className="font-medium text-[#89877F] hover:text-[#24231F] cursor-pointer"
+                        className="font-medium text-[#636159] hover:text-[#24231F] cursor-pointer"
                       >
                         Verify later &amp; continue →
                       </button>
@@ -997,7 +1015,7 @@ export function AuthExperience({
                     className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#E8B52E] py-3 text-sm font-semibold text-[#24231F] hover:bg-[#dca923] cursor-pointer"
                   >
                     <span>{submitting ? 'Generating Token…' : 'Send Reset Token'}</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </button>
 
                   <div className="flex items-center justify-between text-xs">
@@ -1007,7 +1025,7 @@ export function AuthExperience({
                         resetMessages();
                         setMode('login');
                       }}
-                      className="font-semibold text-[#77764B] hover:text-[#24231F] cursor-pointer"
+                      className="font-semibold text-[#61603B] hover:text-[#24231F] cursor-pointer"
                     >
                       ← Back to Sign In
                     </button>
@@ -1017,7 +1035,7 @@ export function AuthExperience({
                         resetMessages();
                         setMode('reset');
                       }}
-                      className="font-medium text-[#D77B43] hover:underline cursor-pointer"
+                      className="font-medium text-[#A34E1D] hover:underline cursor-pointer"
                     >
                       Already have a token?
                     </button>
@@ -1064,7 +1082,7 @@ export function AuthExperience({
                     className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#E8B52E] py-3 text-sm font-semibold text-[#24231F] hover:bg-[#dca923] cursor-pointer"
                   >
                     <span>{submitting ? 'Updating Password…' : 'Reset Password & Sign In'}</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </button>
 
                   <div className="text-center text-xs">
@@ -1074,7 +1092,7 @@ export function AuthExperience({
                         resetMessages();
                         setMode('login');
                       }}
-                      className="font-semibold text-[#77764B] hover:text-[#24231F] cursor-pointer"
+                      className="font-semibold text-[#61603B] hover:text-[#24231F] cursor-pointer"
                     >
                       ← Back to Sign In
                     </button>
@@ -1083,7 +1101,7 @@ export function AuthExperience({
               )}
 
               {/* Terms & Privacy footer links */}
-              <div className="mt-6 pt-4 border-t border-[#E8E3D8] flex items-center justify-center gap-4 text-[11px] text-[#89877F]">
+              <div className="mt-6 pt-4 border-t border-[#E8E3D8] flex items-center justify-center gap-4 text-[11px] text-[#636159]">
                 <button
                   type="button"
                   onClick={() => setLegalModal('terms')}
@@ -1110,21 +1128,24 @@ export function AuthExperience({
         <div
           role="dialog"
           aria-modal="true"
+          aria-labelledby="legal-modal-title"
           className="fixed inset-0 z-50 bg-[#24231F]/50 flex items-center justify-center p-4"
         >
           <div className="w-full max-w-md rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-semibold text-[#24231F]">
-                <ShieldCheck className="h-4 w-4 text-[#77764B]" aria-hidden="true" />
-                <span>{legalModal === 'terms' ? 'NEXORA Terms of Use' : 'NEXORA Privacy Policy'}</span>
+                <ShieldCheck className="h-4 w-4 text-[#61603B]" aria-hidden="true" />
+                <h3 id="legal-modal-title">
+                  {legalModal === 'terms' ? 'NEXORA Terms of Use' : 'NEXORA Privacy Policy'}
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setLegalModal(null)}
                 aria-label="Close modal"
-                className="text-[#89877F] hover:text-[#24231F] cursor-pointer"
+                className="text-[#636159] hover:text-[#24231F] cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
             <div className="text-xs text-[#24231F]/80 space-y-2 leading-relaxed">

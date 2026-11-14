@@ -185,7 +185,7 @@ export function SkillProofView({
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl text-[#24231F]">SkillProof Intelligence</h1>
-          <p className="text-sm text-[#89877F] mt-1">
+          <p className="text-sm text-[#636159] mt-1">
             Evidence-backed 0–5 competency ledger. Course completion, XP, and streaks never modify
             proficiency directly.
           </p>
@@ -203,7 +203,7 @@ export function SkillProofView({
               type="button"
               onClick={() => setTab(t.id)}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
-                tab === t.id ? 'bg-[#24231F] text-[#F8F6EF]' : 'text-[#89877F] hover:text-[#24231F]'
+                tab === t.id ? 'bg-[#24231F] text-[#F8F6EF]' : 'text-[#636159] hover:text-[#24231F]'
               }`}
             >
               {t.label}
@@ -216,23 +216,23 @@ export function SkillProofView({
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-xl font-bold tabular-nums">{declaredCount}</div>
-          <div className="text-xs text-[#89877F]">Declared Only</div>
+          <div className="text-xs text-[#636159]">Declared Only</div>
         </div>
         <div className="rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-xl font-bold text-[#77764B] tabular-nums">{demonstratedCount}</div>
-          <div className="text-xs text-[#89877F]">Demonstrated</div>
+          <div className="text-xs text-[#636159]">Demonstrated</div>
         </div>
         <div className="rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-xl font-bold text-[#24231F] tabular-nums">{validatedCount}</div>
-          <div className="text-xs text-[#89877F]">Validated</div>
+          <div className="text-xs text-[#636159]">Validated</div>
         </div>
         <div className="rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
-          <div className="text-xl font-bold text-[#89877F] tabular-nums">{unassessedCount}</div>
-          <div className="text-xs text-[#89877F]">Unassessed Career Skills</div>
+          <div className="text-xl font-bold text-[#636159] tabular-nums">{unassessedCount}</div>
+          <div className="text-xs text-[#636159]">Unassessed Career Skills</div>
         </div>
         <div className="rounded-xl border border-[#E8E3D8] bg-[#FDFBF6] p-4">
           <div className="text-xl font-bold text-[#D77B43] tabular-nums">{needsReassess}</div>
-          <div className="text-xs text-[#89877F]">Needs Reassessment</div>
+          <div className="text-xs text-[#636159]">Needs Reassessment</div>
         </div>
       </div>
 
@@ -259,7 +259,7 @@ export function SkillProofView({
                     type="button"
                     onClick={() => setStateFilter(st)}
                     className={`rounded px-2.5 py-1 text-xs font-medium cursor-pointer ${
-                      stateFilter === st ? 'bg-[#F4E3B2] text-[#24231F] font-semibold' : 'text-[#89877F]'
+                      stateFilter === st ? 'bg-[#F4E3B2] text-[#24231F] font-semibold' : 'text-[#636159]'
                     }`}
                   >
                     {st === 'ALL' ? 'All' : st}
@@ -269,14 +269,14 @@ export function SkillProofView({
             </div>
 
             {filteredSkills.length === 0 ? (
-              <div className="py-10 text-center text-sm text-[#89877F]">
+              <div className="py-10 text-center text-sm text-[#636159]">
                 No skills match this filter yet. Declare a skill or take a diagnostic assessment.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#89877F]">
+                    <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#636159]">
                       <th className="py-2 pr-3">Skill</th>
                       <th className="py-2 px-2">Category</th>
                       <th className="py-2 px-2">Evidence State</th>
@@ -295,7 +295,7 @@ export function SkillProofView({
                             </span>
                           )}
                         </td>
-                        <td className="py-2 px-2 text-xs text-[#89877F]">{sk.category}</td>
+                        <td className="py-2 px-2 text-xs text-[#636159]">{sk.category}</td>
                         <td className="py-2 px-2 text-xs font-semibold">
                           <span
                             className={
@@ -303,7 +303,7 @@ export function SkillProofView({
                                 ? 'text-[#77764B]'
                                 : sk.evidenceState === 'Declared'
                                   ? 'text-[#D77B43]'
-                                  : 'text-[#89877F]'
+                                  : 'text-[#636159]'
                             }
                           >
                             {sk.evidenceState}
@@ -330,7 +330,7 @@ export function SkillProofView({
 
             {readiness.skillGaps.some((g) => g.evidenceState === 'Unassessed') && (
               <div className="mt-6 border-t border-[#E8E3D8] pt-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#89877F] mb-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#636159] mb-2">
                   Unassessed {dashboard.career.title} Requirements
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -360,7 +360,7 @@ export function SkillProofView({
                 <Plus className="h-4 w-4 text-[#77764B]" aria-hidden="true" />
                 <span>Declare a Skill</span>
               </h2>
-              <p className="text-xs text-[#89877F]">
+              <p className="text-xs text-[#636159]">
                 Self-declared skills are logged as Declared (0/5 evidence) until assessed.
               </p>
               <div>
@@ -506,12 +506,12 @@ export function SkillProofView({
           <section className="rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-6">
             <h2 className="text-lg font-semibold text-[#24231F] mb-4">Evidence History</h2>
             {evidence.length === 0 ? (
-              <p className="text-sm text-[#89877F]">No evidence records yet.</p>
+              <p className="text-sm text-[#636159]">No evidence records yet.</p>
             ) : (
               <div className="space-y-3">
                 {evidence.map((ev) => (
                   <div key={ev.id} className="rounded-xl border border-[#E8E3D8] bg-white p-4">
-                    <div className="flex items-center justify-between text-xs text-[#89877F]">
+                    <div className="flex items-center justify-between text-xs text-[#636159]">
                       <span>
                         {ev.evidenceType} · {ev.skillId.toUpperCase()}
                       </span>
@@ -519,7 +519,7 @@ export function SkillProofView({
                     </div>
                     <div className="text-sm font-semibold text-[#24231F] mt-1">{ev.title}</div>
                     <p className="text-xs text-[#24231F]/75 mt-1">{ev.description}</p>
-                    <div className="text-[11px] text-[#89877F] mt-2">
+                    <div className="text-[11px] text-[#636159] mt-2">
                       Reviewed by: {ev.verifiedBy} · {new Date(ev.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -531,7 +531,7 @@ export function SkillProofView({
           <section className="rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-6">
             <h2 className="text-lg font-semibold text-[#24231F] mb-4">Assessment History</h2>
             {attempts.length === 0 ? (
-              <p className="text-sm text-[#89877F]">
+              <p className="text-sm text-[#636159]">
                 No diagnostic attempts yet. Select any skill to take an assessment.
               </p>
             ) : (
@@ -544,7 +544,7 @@ export function SkillProofView({
                         {a.scorePercent}%
                       </span>
                     </div>
-                    <div className="text-xs text-[#89877F] mt-1">
+                    <div className="text-xs text-[#636159] mt-1">
                       Decision: {a.adaptiveDecision.replace('_', ' ')} ·{' '}
                       <span className="tabular-nums">
                         {a.correctCount}/{a.totalCount}
@@ -590,7 +590,7 @@ export function SkillProofView({
                     <span>{m.reviewStatus}</span>
                   </span>
                 </div>
-                <div className="text-xs text-[#89877F]">Source: {m.source}</div>
+                <div className="text-xs text-[#636159]">Source: {m.source}</div>
                 <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
                     <div className="font-semibold text-[#24231F]">Learning Outcomes</div>
@@ -619,7 +619,7 @@ export function SkillProofView({
             className="lg:col-span-4 rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-5 space-y-3 h-fit"
           >
             <h2 className="text-base font-semibold text-[#24231F]">Add Missing Syllabus Mapping</h2>
-            <p className="text-xs text-[#89877F]">
+            <p className="text-xs text-[#636159]">
               Missing syllabus mappings require a verifiable curriculum source and enter Pending
               Review.
             </p>

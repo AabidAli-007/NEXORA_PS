@@ -30,6 +30,9 @@ const DB_PATH = path.join(DATA_DIR, 'nexora.db');
 
 export const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
+db.pragma('synchronous = NORMAL');
+db.pragma('temp_store = MEMORY');
+db.pragma('cache_size = -16000');
 db.pragma('foreign_keys = ON');
 
 export function hashPassword(password: string, existingSalt?: string): { hash: string; salt: string } {
@@ -367,6 +370,14 @@ export function runMigrations() {
     CREATE INDEX IF NOT EXISTS idx_xp_user ON xp_transactions(user_id);
     CREATE INDEX IF NOT EXISTS idx_agent_runs_user ON agent_runs(user_id);
     CREATE INDEX IF NOT EXISTS idx_entry_sessions_user ON entry_assessment_sessions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_ai_interactions_user_time ON ai_interactions(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_projects_user_time ON project_submissions(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_snapshots_user_time ON readiness_snapshots(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_topic_perf_user_domain ON topic_performance(user_id, domain_id);
+    CREATE INDEX IF NOT EXISTS idx_oauth_states_expires ON oauth_states(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_oauth_handoffs_expires ON oauth_handoffs(expires_at);
   `);
 
   // Idempotent column migrations for existing databases

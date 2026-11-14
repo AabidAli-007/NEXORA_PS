@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Award,
   BarChart3,
@@ -87,8 +87,26 @@ export function SidebarShell({
     setMobileOpen(false);
   }
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mobileOpen]);
+
   return (
     <div className="min-h-screen bg-[#F8F6EF] text-[#24231F] flex flex-col lg:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-[#24231F] focus:px-4 focus:py-2 focus:text-xs focus:font-semibold focus:text-[#F8F6EF] focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
       {/* Mobile Top Bar (compact <= 56px) */}
       <header className="lg:hidden sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#E8E3D8] bg-[#FDFBF6] px-4">
         <div className="flex items-center gap-3">
@@ -96,13 +114,15 @@ export function SidebarShell({
             type="button"
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-drawer"
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#E8E3D8] bg-white text-[#24231F] cursor-pointer"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
           <BrandMark size={22} />
         </div>
-        <span className="text-xs font-semibold text-[#77764B] truncate max-w-[140px]">
+        <span className="text-xs font-semibold text-[#61603B] truncate max-w-[140px]">
           {currentNav.label}
         </span>
       </header>
@@ -115,16 +135,22 @@ export function SidebarShell({
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
-          <aside className="relative z-10 flex w-72 max-w-[85vw] flex-col bg-[#FDFBF6] border-r border-[#E8E3D8] p-4">
+          <aside
+            id="mobile-nav-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+            className="relative z-10 flex w-72 max-w-[85vw] flex-col bg-[#FDFBF6] border-r border-[#E8E3D8] p-4"
+          >
             <div className="flex items-center justify-between pb-4 border-b border-[#E8E3D8]">
               <BrandMark size={22} />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close navigation menu"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#89877F] hover:text-[#24231F] cursor-pointer"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#636159] hover:text-[#24231F] cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
             <nav aria-label="Mobile Navigation" className="mt-4 flex-1 space-y-1 overflow-y-auto">
@@ -135,11 +161,12 @@ export function SidebarShell({
                   <button
                     key={item.id}
                     type="button"
+                    aria-current={active ? 'page' : undefined}
                     onClick={() => handleSelect(item.id)}
                     className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
                       active
                         ? 'bg-[#F4E3B2] text-[#24231F] font-semibold'
-                        : 'text-[#24231F]/75 hover:bg-[#F8F6EF] hover:text-[#24231F]'
+                        : 'text-[#24231F]/80 hover:bg-[#F8F6EF] hover:text-[#24231F]'
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -152,7 +179,7 @@ export function SidebarShell({
               <button
                 type="button"
                 onClick={onLogout}
-                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-[#89877F] hover:text-[#24231F] cursor-pointer"
+                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-[#636159] hover:text-[#24231F] cursor-pointer"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 <span>Log out</span>
@@ -176,11 +203,12 @@ export function SidebarShell({
               <button
                 key={item.id}
                 type="button"
+                aria-current={active ? 'page' : undefined}
                 onClick={() => handleSelect(item.id)}
                 className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors cursor-pointer whitespace-nowrap ${
                   active
                     ? 'bg-[#F4E3B2] text-[#24231F] font-semibold'
-                    : 'text-[#24231F]/75 hover:bg-[#F8F6EF] hover:text-[#24231F] font-medium'
+                    : 'text-[#24231F]/80 hover:bg-[#F8F6EF] hover:text-[#24231F] font-medium'
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -197,11 +225,12 @@ export function SidebarShell({
                 <button
                   key={item.id}
                   type="button"
+                  aria-current={active ? 'page' : undefined}
                   onClick={() => handleSelect(item.id)}
                   className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors cursor-pointer whitespace-nowrap ${
                     active
                       ? 'bg-[#F4E3B2] text-[#24231F] font-semibold'
-                      : 'text-[#24231F]/75 hover:bg-[#F8F6EF] hover:text-[#24231F] font-medium'
+                      : 'text-[#24231F]/80 hover:bg-[#F8F6EF] hover:text-[#24231F] font-medium'
                   }`}
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -216,16 +245,16 @@ export function SidebarShell({
           <div className="rounded-lg bg-[#F8F6EF] border border-[#E8E3D8] px-3 py-2.5">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-[#24231F]">{levelName}</span>
-              <span className="font-mono text-[#77764B] tabular-nums">{totalXp} XP</span>
+              <span className="font-mono text-[#61603B] tabular-nums">{totalXp} XP</span>
             </div>
             {profile.isDemo && (
-              <div className="mt-1 text-[11px] text-[#89877F]">Seeded Demo Learner</div>
+              <div className="mt-1 text-[11px] text-[#636159]">Seeded Demo Learner</div>
             )}
           </div>
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[#89877F] hover:text-[#24231F] transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[#636159] hover:text-[#24231F] transition-colors cursor-pointer"
           >
             <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Sign out</span>
@@ -236,18 +265,18 @@ export function SidebarShell({
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="hidden lg:flex h-16 items-center justify-between border-b border-[#E8E3D8] bg-[#FDFBF6]/80 px-8">
-          <div className="flex items-center gap-2 text-xs text-[#89877F]">
+          <div className="flex items-center gap-2 text-xs text-[#636159]">
             <span>NEXORA</span>
             <span aria-hidden="true">/</span>
             <span className="font-semibold text-[#24231F]">{currentNav.label}</span>
             <span aria-hidden="true">·</span>
-            <span className="text-[#77764B] truncate max-w-[260px]">
+            <span className="text-[#61603B] truncate max-w-[260px]">
               {resolvedDomain.name} · {profile.courseName}
             </span>
             {profile.isDemo && (
               <>
                 <span aria-hidden="true">·</span>
-                <span className="text-[#77764B] font-medium">Demo Learner</span>
+                <span className="text-[#61603B] font-medium">Demo Learner</span>
               </>
             )}
           </div>
@@ -268,7 +297,7 @@ export function SidebarShell({
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 max-w-[1200px] w-full mx-auto">
+        <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-6 sm:px-6 lg:px-8 max-w-[1200px] w-full mx-auto focus:outline-none">
           {children}
         </main>
       </div>

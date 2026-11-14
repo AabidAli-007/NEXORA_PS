@@ -44,7 +44,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
           <h1 className="font-serif text-3xl text-[#24231F]">
             Career Readiness &amp; Intelligence Report
           </h1>
-          <p className="text-sm text-[#89877F] mt-1">
+          <p className="text-sm text-[#636159] mt-1">
             Transparent gap math, AI orchestrator execution logs, and privacy-protected cohort
             analytics.
           </p>
@@ -63,7 +63,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
               type="button"
               onClick={() => setTab(t.id)}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
-                tab === t.id ? 'bg-[#24231F] text-[#F8F6EF]' : 'text-[#89877F] hover:text-[#24231F]'
+                tab === t.id ? 'bg-[#24231F] text-[#F8F6EF]' : 'text-[#636159] hover:text-[#24231F]'
               }`}
             >
               {t.label}
@@ -85,7 +85,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
                   <span className="font-serif text-4xl text-[#24231F] tabular-nums">
                     {readiness.readinessScore}%
                   </span>
-                  <span className="text-xs font-mono text-[#89877F] tabular-nums">
+                  <span className="text-xs font-mono text-[#636159] tabular-nums">
                     Weighted Gap: {readiness.totalWeightedGaps} / {readiness.totalWeightedRequirements}
                   </span>
                 </div>
@@ -101,7 +101,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
                 <BarChart data={chartData} margin={{ top: 10, right: 16, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E8E3D8" />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#24231F' }} />
-                  <YAxis domain={[0, 5]} tick={{ fontSize: 11, fill: '#89877F' }} />
+                  <YAxis domain={[0, 5]} tick={{ fontSize: 11, fill: '#636159' }} />
                   <Tooltip />
                   <Bar dataKey="Required" fill="#E8E3D8" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Demonstrated" fill="#E8B52E" radius={[4, 4, 0, 0]} />
@@ -118,7 +118,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#89877F]">
+                  <tr className="border-b border-[#E8E3D8] text-[11px] font-semibold uppercase tracking-wider text-[#636159]">
                     <th className="py-2 pr-3">Skill</th>
                     <th className="py-2 px-2">Status</th>
                     <th className="py-2 px-2">Req (R)</th>
@@ -141,7 +141,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
                               ? 'text-[#77764B]'
                               : g.statusLabel === 'Declared Only' || g.statusLabel === 'Needs Improvement'
                                 ? 'text-[#D77B43]'
-                                : 'text-[#89877F]'
+                                : 'text-[#636159]'
                           }
                         >
                           {g.statusLabel}
@@ -215,7 +215,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
               Central AI Orchestrator Execution Logs
             </h2>
           </div>
-          <p className="text-xs text-[#89877F]">
+          <p className="text-xs text-[#636159]">
             Controlled event-driven execution across Skill Auditor, Career Architect, Learning
             Strategist, Progress Evaluator, and Adaptive Mentor.
           </p>
@@ -256,7 +256,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
           </div>
 
           {!institutional ? (
-            <p className="text-sm text-[#89877F]">Loading aggregated cohort metrics…</p>
+            <p className="text-sm text-[#636159]">Loading aggregated cohort metrics…</p>
           ) : (
             <>
               <div className="rounded-xl border border-[#77764B]/30 bg-[#77764B]/10 px-4 py-3 text-xs text-[#24231F] flex items-center gap-2">
@@ -267,19 +267,19 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="rounded-xl border border-[#E8E3D8] bg-white p-4">
                   <div className="text-2xl font-bold tabular-nums">{institutional.totalLearners}</div>
-                  <div className="text-xs text-[#89877F]">Active Cohort Learners</div>
+                  <div className="text-xs text-[#636159]">Active Cohort Learners</div>
                 </div>
                 <div className="rounded-xl border border-[#E8E3D8] bg-white p-4">
                   <div className="text-2xl font-bold tabular-nums">
                     {institutional.assessmentSummary.attempts}
                   </div>
-                  <div className="text-xs text-[#89877F]">Cohort Diagnostics Logged</div>
+                  <div className="text-xs text-[#636159]">Cohort Diagnostics Logged</div>
                 </div>
                 <div className="rounded-xl border border-[#E8E3D8] bg-white p-4">
                   <div className="text-2xl font-bold tabular-nums">
                     {institutional.assessmentSummary.avgScore}%
                   </div>
-                  <div className="text-xs text-[#89877F]">Mean Cohort Diagnostic Score</div>
+                  <div className="text-xs text-[#636159]">Mean Cohort Diagnostic Score</div>
                 </div>
               </div>
 
@@ -308,7 +308,7 @@ export function CareerReadinessView({ dashboard }: CareerReadinessViewProps) {
                     {institutional.skillGapTrends.map((s) => (
                       <div key={s.skillName} className="flex justify-between">
                         <span>{s.skillName}</span>
-                        <span className="font-mono tabular-nums text-[#89877F]">
+                        <span className="font-mono tabular-nums text-[#636159]">
                           {s.provenCount} proven · {s.declaredOnlyCount} declared only
                         </span>
                       </div>

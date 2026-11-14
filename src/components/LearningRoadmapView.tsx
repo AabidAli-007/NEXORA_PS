@@ -89,7 +89,7 @@ export function LearningRoadmapView({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl text-[#24231F]">Personalized Learning Roadmap</h1>
-          <p className="text-sm text-[#89877F] mt-1">
+          <p className="text-sm text-[#636159] mt-1">
             {career.title} · Prerequisite-validated path following LEARN → PRACTICE → ASSESS →
             DEMONSTRATE.
           </p>
@@ -151,7 +151,7 @@ export function LearningRoadmapView({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2 text-xs text-[#89877F]">
+                    <div className="flex items-center gap-2 text-xs text-[#636159]">
                       <span className="font-semibold text-[#24231F] tabular-nums">
                         {step.isRemedial ? 'Remedial Insert' : `Phase 0${step.phaseNumber}`}
                       </span>
@@ -176,7 +176,7 @@ export function LearningRoadmapView({
                           : needsRevision || step.isRemedial
                             ? 'text-[#D77B43]'
                             : locked
-                              ? 'text-[#89877F]'
+                              ? 'text-[#636159]'
                               : 'text-[#24231F]'
                       }`}
                     >
@@ -197,7 +197,7 @@ export function LearningRoadmapView({
                 {/* Verified Resource & Practice */}
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="rounded-xl border border-[#E8E3D8] bg-white p-3">
-                    <div className="font-semibold text-[#89877F]">Approved Resource</div>
+                    <div className="font-semibold text-[#636159]">Approved Resource</div>
                     <a
                       href={step.resourceUrl}
                       target="_blank"
@@ -209,7 +209,7 @@ export function LearningRoadmapView({
                     </a>
                   </div>
                   <div className="rounded-xl border border-[#E8E3D8] bg-white p-3">
-                    <div className="font-semibold text-[#89877F]">Practice Exercise</div>
+                    <div className="font-semibold text-[#636159]">Practice Exercise</div>
                     <p className="mt-1 text-[#24231F]/80">{step.practiceExercise}</p>
                   </div>
                 </div>
@@ -261,7 +261,7 @@ export function LearningRoadmapView({
         <aside className="lg:col-span-4 space-y-4">
           <div className="rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-5 sticky top-6">
             <h2 className="text-base font-semibold text-[#24231F]">Learning Time Optimizer</h2>
-            <p className="text-xs text-[#89877F] mt-1">
+            <p className="text-xs text-[#636159] mt-1">
               Realistic weekly pacing based on your{' '}
               <strong className="text-[#24231F] tabular-nums">
                 {dashboard.profile.weeklyHours} hrs/week
@@ -287,7 +287,7 @@ export function LearningRoadmapView({
                       {wk.items.map((item) => (
                         <li key={item.id} className="flex items-center justify-between gap-2">
                           <span className="truncate">{item.skillName}</span>
-                          <span className="text-[11px] font-mono text-[#89877F] tabular-nums shrink-0">
+                          <span className="text-[11px] font-mono text-[#636159] tabular-nums shrink-0">
                             {item.estimatedMinutes}m
                           </span>
                         </li>

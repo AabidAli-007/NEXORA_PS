@@ -166,7 +166,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
                     : span.tone === 'string'
                       ? 'text-[#A8C686]'
                       : span.tone === 'comment'
-                        ? 'text-[#89877F] italic'
+                        ? 'text-[#636159] italic'
                         : span.tone === 'number'
                           ? 'text-[#E89B6C]'
                           : 'text-[#F8F6EF]';

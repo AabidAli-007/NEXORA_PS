@@ -112,19 +112,93 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   return next();
 }
 
-// Simple per-IP/user in-memory rate limiter for auth & AI endpoints
+export function timingSafeHexEqual(aHex: string, bHex: string): boolean {
+  if (!aHex || !bHex || aHex.length !== bHex.length) return false;
+  try {
+    const a = Buffer.from(aHex, 'hex');
+    const b = Buffer.from(bHex, 'hex');
+    if (a.length === 0 || a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+export function securityHeadersMiddleware(req: Request, res: Response, next: NextFunction) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  if (isHttpsRequest(req)) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  return next();
+}
+
+export function csrfOriginGuard(req: Request, res: Response, next: NextFunction) {
+  const method = req.method.toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+    return next();
+  }
+  const originHeader = req.headers.origin;
+  if (!originHeader || originHeader === 'null') {
+    return next();
+  }
+
+  let parsedOrigin: URL;
+  try {
+    parsedOrigin = new URL(originHeader);
+  } catch {
+    return res.status(403).json({ error: 'Invalid request origin header.' });
+  }
+
+  const originHost = parsedOrigin.host.toLowerCase();
+  const originHostname = parsedOrigin.hostname.toLowerCase();
+  const requestHost = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
+  const appUrl = (process.env.APP_URL || '').trim();
+  let appHost = '';
+  try {
+    if (appUrl && /^https?:\/\//i.test(appUrl)) {
+      appHost = new URL(appUrl).host.toLowerCase();
+    }
+  } catch {
+    appHost = '';
+  }
+
+  const isTrustedOrigin =
+    (requestHost && originHost === requestHost) ||
+    (appHost && originHost === appHost) ||
+    originHostname === 'localhost' ||
+    originHostname === '127.0.0.1' ||
+    originHostname.endsWith('.run.app');
+
+  if (!isTrustedOrigin) {
+    return res.status(403).json({ error: 'Cross-origin state-changing request blocked.' });
+  }
+  return next();
+}
+
+// Simple per-IP/user in-memory rate limiter with bounded memory eviction
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 export function rateLimit(maxRequests: number, windowMs: number) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const key = `${req.path}:${req.ip || 'local'}`;
     const now = Date.now();
+    if (buckets.size > 500) {
+      for (const [k, v] of buckets.entries()) {
+        if (v.resetAt < now) buckets.delete(k);
+      }
+    }
+    const key = `${req.path}:${req.ip || 'local'}`;
     const existing = buckets.get(key);
     if (!existing || existing.resetAt < now) {
       buckets.set(key, { count: 1, resetAt: now + windowMs });
       return next();
     }
     if (existing.count >= maxRequests) {
+      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((existing.resetAt - now) / 1000))));
       return res.status(429).json({
         error: 'Too many requests. Please wait a moment and try again.',
       });

@@ -149,7 +149,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
               type="button"
               onClick={() => setTab(t.id)}
               className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
-                tab === t.id ? 'bg-[#E8B52E] text-[#24231F]' : 'text-[#89877F] hover:text-[#24231F]'
+                tab === t.id ? 'bg-[#E8B52E] text-[#24231F]' : 'text-[#636159] hover:text-[#24231F]'
               }`}
             >
               {t.label}
@@ -163,7 +163,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
         <div className="lg:col-span-5 rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-5">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs text-[#89877F]">Engagement Level</div>
+              <div className="text-xs text-[#636159]">Engagement Level</div>
               <div className="text-xl font-bold text-[#24231F] mt-0.5">
                 Lvl {gamification.level.level} · {gamification.level.name}
               </div>
@@ -172,7 +172,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
               <div className="text-lg font-mono font-bold text-[#24231F] tabular-nums">
                 {gamification.totalXp} XP
               </div>
-              <div className="text-[11px] text-[#89877F] tabular-nums">
+              <div className="text-[11px] text-[#636159] tabular-nums">
                 {gamification.level.nextXp
                   ? `${gamification.xpToNext} XP to next tier`
                   : 'Max tier reached'}
@@ -189,11 +189,11 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
 
         <div className="lg:col-span-3 rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-5 flex items-center justify-between">
           <div>
-            <div className="text-xs text-[#89877F]">Learning Streak ({dashboard.profile.timezone})</div>
+            <div className="text-xs text-[#636159]">Learning Streak ({dashboard.profile.timezone})</div>
             <div className="text-2xl font-bold text-[#24231F] tabular-nums mt-0.5">
               {gamification.streak.current} Day{gamification.streak.current === 1 ? '' : 's'}
             </div>
-            <div className="text-[11px] text-[#89877F] tabular-nums">
+            <div className="text-[11px] text-[#636159] tabular-nums">
               Longest: {gamification.streak.longest} days
             </div>
           </div>
@@ -232,7 +232,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
                 className="rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-5 flex flex-col justify-between space-y-4"
               >
                 <div>
-                  <div className="flex items-center justify-between text-xs text-[#89877F]">
+                  <div className="flex items-center justify-between text-xs text-[#636159]">
                     <span>
                       {ch.category} · {ch.estimatedMinutes} mins
                     </span>
@@ -325,7 +325,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
               }`}
             >
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs text-[#89877F]">
+                <div className="flex items-center gap-2 text-xs text-[#636159]">
                   <span className="font-semibold text-[#24231F] tabular-nums">
                     Mission 0{q.orderIndex}
                   </span>
@@ -349,7 +349,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
                     <ExternalLink className="h-3 w-3" />
                   </a>
                   {q.prerequisites.length > 0 && (
-                    <span className="text-[#89877F]">
+                    <span className="text-[#636159]">
                       Prerequisites: {q.prerequisites.join(', ')}
                     </span>
                   )}
@@ -363,7 +363,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
                     <span>Completed</span>
                   </span>
                 ) : !q.unlocked ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#89877F]">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#636159]">
                     <Lock className="h-4 w-4" aria-hidden="true" />
                     <span>Prerequisites Locked</span>
                   </span>
@@ -393,7 +393,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
               className="rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-6 flex flex-col justify-between space-y-4"
             >
               <div>
-                <div className="flex items-center justify-between text-xs text-[#89877F]">
+                <div className="flex items-center justify-between text-xs text-[#636159]">
                   <span>
                     {b.difficulty} · ~{b.estimatedHours} hrs
                   </span>
@@ -439,7 +439,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
             className="w-full max-w-lg rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-6 space-y-4 shadow-xl"
           >
             <h3 className="font-serif text-2xl text-[#24231F]">{activeBoss.title}</h3>
-            <p className="text-xs text-[#89877F]">
+            <p className="text-xs text-[#636159]">
               Verify which rubric requirements your project satisfies. Note: NEXORA does not execute
               arbitrary submitted code in a browser sandbox.
             </p>
@@ -464,7 +464,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
                       />
                       <span>{c.label}</span>
                     </span>
-                    <span className="font-mono text-[#89877F] tabular-nums">{c.weight}%</span>
+                    <span className="font-mono text-[#636159] tabular-nums">{c.weight}%</span>
                   </label>
                 );
               })}
@@ -539,7 +539,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
                   >
                     <div className="flex items-center justify-between text-xs font-semibold">
                       <span>{ach.title}</span>
-                      <span className={earned ? 'text-[#77764B]' : 'text-[#89877F]'}>
+                      <span className={earned ? 'text-[#77764B]' : 'text-[#636159]'}>
                         {earned ? 'Earned' : 'Locked'}
                       </span>
                     </div>
@@ -574,7 +574,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
               <Trophy className="h-5 w-5 text-[#D77B43]" aria-hidden="true" />
               <span>Opt-In Engagement Leaderboard</span>
             </h2>
-            <p className="text-xs text-[#89877F]">
+            <p className="text-xs text-[#636159]">
               Privacy-first: shows engagement XP only for learners who opted in under Settings.
               Private skill records are never exposed.
             </p>
@@ -587,7 +587,7 @@ export function NexoraPlayView({ dashboard, onUpdated }: NexoraPlayViewProps) {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-[#89877F] tabular-nums">#{row.rank}</span>
+                    <span className="font-mono text-[#636159] tabular-nums">#{row.rank}</span>
                     <span>
                       {row.displayName} {row.isCurrentUser ? '(You)' : ''}
                     </span>

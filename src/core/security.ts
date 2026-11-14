@@ -18,14 +18,19 @@ const PRIVATE_IP_PATTERNS = [
   /^0\.0\.0\.0$/,
   /^172\.(1[6-9]|2\d|3[0-1])\./,
   /^::1$/,
+  /^::ffff:/i,
+  /^\[?::ffff:/i,
   /^fc00:/i,
   /^fe80:/i,
+  /^(0x[0-9a-f]+|\d+|0[0-7]+)$/i,
+  /\.internal$/i,
+  /\.local$/i,
 ];
 
 export function validateGitHubRepoUrl(rawUrl: string): ParsedGitHubRepo {
   const trimmed = rawUrl.trim();
-  if (!trimmed) {
-    return { valid: false, error: 'Repository URL is required.' };
+  if (!trimmed || trimmed.length > 512) {
+    return { valid: false, error: 'A valid repository URL (max 512 chars) is required.' };
   }
 
   let parsed: URL;
@@ -37,6 +42,10 @@ export function validateGitHubRepoUrl(rawUrl: string): ParsedGitHubRepo {
 
   if (parsed.protocol !== 'https:') {
     return { valid: false, error: 'Only HTTPS GitHub URLs are permitted.' };
+  }
+
+  if (parsed.username || parsed.password) {
+    return { valid: false, error: 'Credentials in repository URLs are blocked.' };
   }
 
   const host = parsed.hostname.toLowerCase();

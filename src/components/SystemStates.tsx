@@ -10,15 +10,19 @@ export function BrandedLoader({
   submessage?: string;
 }) {
   return (
-    <div className="min-h-screen bg-[#F8F6EF] text-[#24231F] flex flex-col items-center justify-center p-6">
+    <div
+      role="status"
+      aria-live="polite"
+      className="min-h-screen bg-[#F8F6EF] text-[#24231F] flex flex-col items-center justify-center p-6"
+    >
       <div className="w-full max-w-md rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-8 text-center shadow-sm">
         <div className="flex justify-center mb-5">
           <BrandMark size={38} variant="icon" />
         </div>
         <div className="font-serif text-2xl text-[#24231F]">NEXORA</div>
         <p className="mt-2 text-sm font-medium text-[#24231F]">{message}</p>
-        {submessage && <p className="mt-1 text-xs text-[#89877F]">{submessage}</p>}
-        <div className="mt-6 h-1.5 w-full rounded-full bg-[#E8E3D8] overflow-hidden">
+        {submessage && <p className="mt-1 text-xs text-[#636159]">{submessage}</p>}
+        <div className="mt-6 h-1.5 w-full rounded-full bg-[#E8E3D8] overflow-hidden" aria-hidden="true">
           <div className="h-full w-1/2 rounded-full bg-[#E8B52E] animate-pulse" />
         </div>
       </div>
@@ -40,12 +44,12 @@ export function AiContextualLoader({
   activeIndex?: number;
 }) {
   return (
-    <div className="rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-6 space-y-4">
+    <div role="status" aria-live="polite" className="rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-6 space-y-4">
       <div className="flex items-center gap-3">
         <BrandMark size={26} variant="icon" />
         <div>
           <div className="text-sm font-semibold text-[#24231F]">{title}</div>
-          <div className="text-xs text-[#89877F]">NEXORA Adaptive Engine</div>
+          <div className="text-xs text-[#636159]">NEXORA Adaptive Engine</div>
         </div>
       </div>
       <div className="space-y-2.5">
@@ -57,7 +61,7 @@ export function AiContextualLoader({
                 ? 'border-[#E8B52E] bg-[#F4E3B2]/50 font-semibold text-[#24231F]'
                 : idx < activeIndex
                   ? 'border-[#77764B]/30 bg-[#77764B]/10 text-[#24231F]'
-                  : 'border-[#E8E3D8] bg-white text-[#89877F]'
+                  : 'border-[#E8E3D8] bg-white text-[#636159]'
             }`}
           >
             <span className="font-mono text-[11px] tabular-nums">{String(idx + 1).padStart(2, '0')}</span>
@@ -142,19 +146,19 @@ export function BrandedErrorPage({
   const Icon = meta.Icon;
 
   return (
-    <div className="min-h-screen bg-[#F8F6EF] text-[#24231F] flex flex-col items-center justify-center p-6">
+    <div role="alert" className="min-h-screen bg-[#F8F6EF] text-[#24231F] flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-lg rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] p-8 sm:p-10 shadow-sm text-center">
         <div className="flex justify-center mb-6">
           <BrandMark size={30} variant="light" />
         </div>
 
-        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#E8E3D8] bg-white text-[#D77B43]">
+        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#E8E3D8] bg-white text-[#A34E1D]">
           <Icon className="h-6 w-6" aria-hidden="true" />
         </div>
 
-        <div className="text-xs font-mono uppercase tracking-wider text-[#77764B]">{meta.code}</div>
+        <div className="text-xs font-mono uppercase tracking-wider text-[#61603B]">{meta.code}</div>
         <h1 className="mt-2 font-serif text-3xl text-[#24231F]">{meta.headline}</h1>
-        <p className="mt-3 text-sm text-[#89877F] leading-relaxed">{meta.body}</p>
+        <p className="mt-3 text-sm text-[#636159] leading-relaxed">{meta.body}</p>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <button

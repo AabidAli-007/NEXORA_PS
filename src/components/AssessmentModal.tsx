@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, HelpCircle, Play, Sparkles, X } from 'lucide-react';
 import { api, type DashboardPayload } from '../lib/api';
 import type { AssessmentQuestion } from '../core/types';
@@ -26,6 +26,18 @@ export function AssessmentModal({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AssessmentGradingOutput | null>(null);
   const [revealedHints, setRevealedHints] = useState<Record<string, number>>({});
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     let active = true;
@@ -102,22 +114,23 @@ export function AssessmentModal({
             </h2>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label="Close assessment"
-            className="rounded-lg p-1.5 text-[#89877F] hover:bg-[#E8E3D8]/50 hover:text-[#24231F] cursor-pointer"
+            className="rounded-lg p-1.5 text-[#636159] hover:bg-[#E8E3D8]/50 hover:text-[#24231F] cursor-pointer"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
-            <div className="py-12 text-center text-sm text-[#89877F]">
+            <div role="status" aria-live="polite" className="py-12 text-center text-sm text-[#636159]">
               Loading multi-format diagnostic questions…
             </div>
           ) : error && !result ? (
-            <div className="rounded-xl border border-[#D77B43] bg-[#D77B43]/10 p-4 text-sm text-[#24231F]">
+            <div role="alert" className="rounded-xl border border-[#D77B43] bg-[#D77B43]/10 p-4 text-sm text-[#24231F]">
               {error}
             </div>
           ) : null}
@@ -131,7 +144,7 @@ export function AssessmentModal({
                     key={q.id}
                     className="rounded-xl border border-[#E8E3D8] bg-white p-5 space-y-3"
                   >
-                    <div className="flex items-center justify-between gap-2 text-xs text-[#89877F]">
+                    <div className="flex items-center justify-between gap-2 text-xs text-[#636159]">
                       <span>
                         Question {idx + 1} of {questions.length} · {q.type.replace('_', ' ')} ·{' '}
                         {q.conceptTag}
@@ -203,7 +216,7 @@ export function AssessmentModal({
                 >
                   Practical Application / Reasoning Notes (optional)
                 </label>
-                <p className="text-xs text-[#89877F] mt-0.5 mb-2">
+                <p className="text-xs text-[#636159] mt-0.5 mb-2">
                   Briefly explain how you applied {skillId} in code or queries to support rubric
                   evaluation.
                 </p>
@@ -238,7 +251,7 @@ export function AssessmentModal({
           )}
 
           {result && (
-            <div className="space-y-5">
+            <div className="space-y-5" aria-live="polite">
               <div
                 className={`rounded-xl border p-5 ${
                   result.adaptiveDecision === 'REMEDIAL_REQUIRED'
@@ -304,7 +317,7 @@ export function AssessmentModal({
                         {qr.correct ? 'Correct' : 'Needs Review'}
                       </span>
                     </div>
-                    <p className="text-xs text-[#89877F] mt-1">{qr.explanation}</p>
+                    <p className="text-xs text-[#636159] mt-1">{qr.explanation}</p>
                   </div>
                 ))}
               </div>

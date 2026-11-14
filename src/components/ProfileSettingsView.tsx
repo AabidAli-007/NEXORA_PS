@@ -97,7 +97,7 @@ export function ProfileSettingsView({
         <h1 className="font-serif text-3xl text-[#24231F]">
           {mode === 'profile' ? 'Learner Profile' : 'Platform & Privacy Settings'}
         </h1>
-        <p className="text-sm text-[#89877F] mt-1">
+        <p className="text-sm text-[#636159] mt-1">
           {mode === 'profile'
             ? 'Manage your academic details, subjects, and career objectives.'
             : 'Configure study schedule pacing, timezone for learning streaks, and privacy controls.'}
@@ -145,7 +145,7 @@ export function ProfileSettingsView({
                   type="email"
                   disabled
                   value={profile.email}
-                  className="w-full rounded-lg border border-[#E8E3D8] bg-[#F8F6EF] px-3 py-2 text-sm text-[#89877F]"
+                  className="w-full rounded-lg border border-[#E8E3D8] bg-[#F8F6EF] px-3 py-2 text-sm text-[#636159]"
                 />
               </div>
               <div>
@@ -285,7 +285,7 @@ export function ProfileSettingsView({
                 <div className="text-sm font-semibold text-[#24231F]">
                   Include my display name &amp; XP on the NEXORA PLAY Leaderboard
                 </div>
-                <p className="text-xs text-[#89877F] mt-0.5">
+                <p className="text-xs text-[#636159] mt-0.5">
                   When enabled, only your display name, engagement level, and XP total are visible.
                   SkillProof assessments and private records always remain isolated.
                 </p>
@@ -312,7 +312,7 @@ export function ProfileSettingsView({
             <h2 className="text-base font-semibold text-[#24231F]">
               Academic Domain &amp; Course Track
             </h2>
-            <p className="text-xs text-[#89877F] mt-0.5">
+            <p className="text-xs text-[#636159] mt-0.5">
               Switch your academic domain or course anytime without losing verified SkillProof
               evidence.
             </p>

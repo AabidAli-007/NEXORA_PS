@@ -12,7 +12,7 @@
   --color-mustard-soft: #F7E8BD;
   --color-olive: #77764B;
   --color-warm-orange: #D77B43;
-  --color-muted-grey: #89877F;
+  --color-muted-grey: #636159;
   --color-border-warm: #E8E3D8;
 }
 
@@ -31,6 +31,16 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #24231F;
+    outline-offset: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -38,5 +48,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

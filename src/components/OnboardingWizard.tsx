@@ -415,13 +415,20 @@ export function OnboardingWizard({
           <BrandMark size={24} variant="light" />
 
           <div className="hidden sm:flex items-center gap-4 flex-1 max-w-md mx-4">
-            <div className="h-2 flex-1 rounded-full bg-[#E8E3D8] overflow-hidden">
+            <div
+              role="progressbar"
+              aria-valuenow={step}
+              aria-valuemin={1}
+              aria-valuemax={5}
+              aria-label="Onboarding progress"
+              className="h-2 flex-1 rounded-full bg-[#E8E3D8] overflow-hidden"
+            >
               <div
                 className="h-full rounded-full bg-[#E8B52E] transition-all duration-300"
                 style={{ width: `${Math.round((step / 5) * 100)}%` }}
               />
             </div>
-            <span className="text-xs font-medium text-[#77764B] whitespace-nowrap tabular-nums">
+            <span className="text-xs font-medium text-[#61603B] whitespace-nowrap tabular-nums">
               Step {step} of 5
             </span>
           </div>
@@ -429,7 +436,7 @@ export function OnboardingWizard({
           <button
             type="button"
             onClick={onLogout}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E3D8] bg-white px-3 py-1.5 text-xs font-medium text-[#89877F] hover:text-[#24231F] cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E3D8] bg-white px-3 py-1.5 text-xs font-medium text-[#636159] hover:text-[#24231F] cursor-pointer"
           >
             <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Sign out</span>
@@ -437,9 +444,12 @@ export function OnboardingWizard({
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 sm:px-8 py-8 sm:py-10">
+      <main id="main-content" className="mx-auto max-w-5xl px-4 sm:px-8 py-8 sm:py-10">
         {error && (
-          <div className="mb-6 rounded-xl border border-[#D77B43] bg-[#D77B43]/10 px-4 py-3 text-sm text-[#24231F] flex flex-wrap items-center justify-between gap-3">
+          <div
+            role="alert"
+            className="mb-6 rounded-xl border border-[#D77B43] bg-[#D77B43]/10 px-4 py-3 text-sm text-[#24231F] flex flex-wrap items-center justify-between gap-3"
+          >
             <span>{error}</span>
             {/authentication|log in|401/i.test(error) && (
               <button
@@ -463,7 +473,7 @@ export function OnboardingWizard({
               <h1 className="font-serif text-3xl sm:text-4xl text-[#24231F]">
                 What do you want to study?
               </h1>
-              <p className="text-sm text-[#89877F]">
+              <p className="text-sm text-[#636159]">
                 Choose your academic domain so NEXORA can build a learning experience around your
                 goals.
               </p>
@@ -478,6 +488,7 @@ export function OnboardingWizard({
                   <button
                     key={dom.id}
                     type="button"
+                    aria-pressed={active}
                     onClick={() => handleSelectDomain(dom.id)}
                     className={`relative text-left rounded-2xl border p-5 transition-all cursor-pointer ${
                       active
@@ -487,14 +498,14 @@ export function OnboardingWizard({
                   >
                     {active && (
                       <span className="absolute right-3.5 top-3.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#E8B52E] text-[#24231F]">
-                        <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                        <Check className="h-3.5 w-3.5 stroke-[2.5]" aria-hidden="true" />
                       </span>
                     )}
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E8E3D8] bg-[#F8F6EF] text-[#D77B43]">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <div className="mt-3.5 font-semibold text-base text-[#24231F]">{dom.name}</div>
-                    <p className="mt-1 text-xs text-[#89877F] leading-relaxed">{dom.subtitle}</p>
+                    <p className="mt-1 text-xs text-[#636159] leading-relaxed">{dom.subtitle}</p>
                   </button>
                 );
               })}
@@ -507,15 +518,16 @@ export function OnboardingWizard({
                   <h2 className="font-semibold text-lg text-[#24231F]">
                     Select your course in {selectedDomain.name}
                   </h2>
-                  <p className="text-xs text-[#89877F]">{selectedDomain.description}</p>
+                  <p className="text-xs text-[#636159]">{selectedDomain.description}</p>
                 </div>
                 <div className="relative w-full sm:w-64">
                   <Search
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#89877F]"
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#636159]"
                     aria-hidden="true"
                   />
                   <input
                     type="text"
+                    aria-label="Search courses"
                     value={courseSearch}
                     onChange={(e) => setCourseSearch(e.target.value)}
                     placeholder="Search courses…"
@@ -531,6 +543,7 @@ export function OnboardingWizard({
                     <button
                       key={course.id}
                       type="button"
+                      aria-pressed={selected}
                       onClick={() => {
                         setCourseId(course.id);
                         setCustomCourseName('');
@@ -543,9 +556,9 @@ export function OnboardingWizard({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-semibold text-[#24231F]">{course.name}</span>
-                        {selected && <CheckCircle2 className="h-4 w-4 text-[#77764B] shrink-0" />}
+                        {selected && <CheckCircle2 className="h-4 w-4 text-[#61603B] shrink-0" aria-hidden="true" />}
                       </div>
-                      <div className="mt-1 text-[11px] text-[#89877F]">
+                      <div className="mt-1 text-[11px] text-[#636159]">
                         {course.defaultSubjects.slice(0, 3).join(' · ')}
                       </div>
                     </button>
@@ -602,7 +615,7 @@ export function OnboardingWizard({
           <form onSubmit={handleStep2Continue} className="max-w-3xl mx-auto space-y-6">
             <div className="text-center space-y-2">
               <h1 className="font-serif text-3xl text-[#24231F]">Tell us about your background</h1>
-              <p className="text-sm text-[#89877F]">
+              <p className="text-sm text-[#636159]">
                 NEXORA uses your stage and study availability to calibrate pacing for{' '}
                 <strong>{resolvedCourseName}</strong>.
               </p>
@@ -774,7 +787,7 @@ export function OnboardingWizard({
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="text-center space-y-2">
               <h1 className="font-serif text-3xl text-[#24231F]">What are your learning goals?</h1>
-              <p className="text-sm text-[#89877F]">
+              <p className="text-sm text-[#636159]">
                 Select all goals that apply and mark your primary priority for{' '}
                 <strong>{resolvedCourseName}</strong>.
               </p>
@@ -804,7 +817,7 @@ export function OnboardingWizard({
                           />
                           <span>
                             <span className="block font-semibold text-[#24231F]">{goal.title}</span>
-                            <span className="block text-xs text-[#89877F] mt-0.5">{goal.description}</span>
+                            <span className="block text-xs text-[#636159] mt-0.5">{goal.description}</span>
                           </span>
                         </label>
                         {chosen && (
@@ -814,7 +827,7 @@ export function OnboardingWizard({
                             className={`text-[11px] font-semibold px-2 py-0.5 rounded cursor-pointer shrink-0 ${
                               isPrimary
                                 ? 'bg-[#E8B52E] text-[#24231F]'
-                                : 'bg-[#F8F6EF] text-[#89877F] hover:text-[#24231F]'
+                                : 'bg-[#F8F6EF] text-[#636159] hover:text-[#24231F]'
                             }`}
                           >
                             {isPrimary ? 'Primary' : 'Set Primary'}
@@ -833,7 +846,7 @@ export function OnboardingWizard({
                 <h2 className="text-sm font-semibold text-[#24231F]">
                   Existing {selectedDomain.name} Foundations (Optional)
                 </h2>
-                <span className="text-[11px] text-[#89877F]">
+                <span className="text-[11px] text-[#636159]">
                   Saved as Declared (0/5) until proven
                 </span>
               </div>
@@ -893,7 +906,7 @@ export function OnboardingWizard({
                 <div className="text-sm font-semibold text-[#24231F]">
                   Entry Diagnostic Length ({selectedDomain.name})
                 </div>
-                <p className="text-xs text-[#89877F]">
+                <p className="text-xs text-[#636159]">
                   Calibrates your baseline level and subject strengths before launching your plan.
                 </p>
               </div>
@@ -966,7 +979,14 @@ export function OnboardingWizard({
                       Question {currentIdx + 1} of {testSession.totalQuestions}
                     </span>
                   </div>
-                  <div className="h-2.5 w-full rounded-full bg-[#E8E3D8] overflow-hidden">
+                  <div
+                    role="progressbar"
+                    aria-valuenow={currentIdx + 1}
+                    aria-valuemin={1}
+                    aria-valuemax={testSession.totalQuestions}
+                    aria-label="Entry test question progress"
+                    className="h-2.5 w-full rounded-full bg-[#E8E3D8] overflow-hidden"
+                  >
                     <div
                       className="h-full rounded-full bg-[#E8B52E] transition-all duration-300"
                       style={{
@@ -974,12 +994,12 @@ export function OnboardingWizard({
                       }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-xs text-[#89877F]">
+                  <div className="flex items-center justify-between text-xs text-[#636159]">
                     <span className="tabular-nums">
                       Answered {answeredCount} of {testSession.totalQuestions}
                     </span>
                     {answerSavedHint && (
-                      <span className="font-semibold text-[#77764B]">{answerSavedHint}</span>
+                      <span role="status" aria-live="polite" className="font-semibold text-[#61603B]">{answerSavedHint}</span>
                     )}
                   </div>
                 </div>
@@ -990,7 +1010,7 @@ export function OnboardingWizard({
                     <span className="inline-block rounded-lg bg-[#F4E3B2] px-3 py-1 text-xs font-semibold text-[#24231F]">
                       {currentQuestion.subjectTag}
                     </span>
-                    <span className="text-xs font-mono text-[#89877F]">
+                    <span className="text-xs font-mono text-[#636159]">
                       {currentQuestion.topicTag} · {currentQuestion.difficulty}
                     </span>
                   </div>
@@ -1013,6 +1033,7 @@ export function OnboardingWizard({
                         <button
                           key={opt}
                           type="button"
+                          aria-pressed={chosen}
                           onClick={() => {
                             setAnswers((prev) => ({ ...prev, [currentQuestion.id]: opt }));
                             handleSaveCurrentAnswer(currentQuestion.id, opt);
@@ -1027,7 +1048,7 @@ export function OnboardingWizard({
                             className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md font-mono text-xs font-bold ${
                               chosen
                                 ? 'bg-[#E8B52E] text-[#24231F]'
-                                : 'bg-[#F8F6EF] text-[#89877F]'
+                                : 'bg-[#F8F6EF] text-[#636159]'
                             }`}
                           >
                             {letter}
@@ -1107,7 +1128,7 @@ export function OnboardingWizard({
               <h1 className="font-serif text-3xl sm:text-4xl text-[#24231F]">
                 Your Assessment Result
               </h1>
-              <p className="text-sm text-[#89877F]">
+              <p className="text-sm text-[#636159]">
                 Based on your performance in <strong>{entryResult.courseName}</strong>, here&apos;s
                 your current skill level.
               </p>
@@ -1121,14 +1142,14 @@ export function OnboardingWizard({
                     score={entryResult.scorePercent}
                     label={entryResult.skillLevel}
                   />
-                  <div className="mt-4 text-xs text-[#89877F] font-mono tabular-nums">
+                  <div className="mt-4 text-xs text-[#636159] font-mono tabular-nums">
                     {entryResult.correctCount} of {entryResult.totalCount} questions correct
                   </div>
                 </div>
 
                 {/* Right: Subject Breakdown Horizontal Bars */}
                 <div className="md:col-span-7 space-y-3.5">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-[#77764B]">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[#61603B]">
                     Subject Breakdown
                   </div>
                   {entryResult.subjectBreakdown.map((subj) => (
@@ -1137,7 +1158,7 @@ export function OnboardingWizard({
                         <span className="font-medium text-[#24231F]">{subj.subject}</span>
                         <span className="font-mono font-bold tabular-nums text-[#24231F]">
                           {subj.scorePercent}%{' '}
-                          <span className="font-sans font-normal text-[#89877F]">
+                          <span className="font-sans font-normal text-[#636159]">
                             ({subj.level})
                           </span>
                         </span>
@@ -1156,19 +1177,19 @@ export function OnboardingWizard({
               {/* AI Learner Profile Insights Box */}
               <div className="rounded-xl border border-[#E8B52E]/60 bg-[#F4E3B2]/30 p-5 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#24231F]">
-                  <Sparkles className="h-4 w-4 text-[#D77B43]" aria-hidden="true" />
+                  <Sparkles className="h-4 w-4 text-[#A34E1D]" aria-hidden="true" />
                   <span>Insights &amp; Personalized Study Profile</span>
                 </div>
                 <p className="text-sm text-[#24231F] leading-relaxed">
                   {entryResult.aiProfile.strengthsSummary}{' '}
                   {entryResult.aiProfile.weakAreasSummary}
                 </p>
-                <div className="text-xs text-[#77764B] font-medium">
+                <div className="text-xs text-[#61603B] font-medium">
                   {entryResult.aiProfile.recommendedPace}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
                   <div className="rounded-lg bg-white/80 border border-[#E8E3D8] p-3">
-                    <div className="font-semibold text-[#77764B]">Strong Topics</div>
+                    <div className="font-semibold text-[#61603B]">Strong Topics</div>
                     <div className="mt-1 text-[#24231F]">
                       {entryResult.strongTopics.length > 0
                         ? entryResult.strongTopics.join(', ')
@@ -1176,7 +1197,7 @@ export function OnboardingWizard({
                     </div>
                   </div>
                   <div className="rounded-lg bg-white/80 border border-[#E8E3D8] p-3">
-                    <div className="font-semibold text-[#D77B43]">Priority Weak Areas</div>
+                    <div className="font-semibold text-[#A34E1D]">Priority Weak Areas</div>
                     <div className="mt-1 text-[#24231F]">
                       {entryResult.weakTopics.length > 0
                         ? entryResult.weakTopics.join(', ')
@@ -1186,7 +1207,7 @@ export function OnboardingWizard({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#89877F]">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#636159]">
                 <span>{entryResult.disclaimer}</span>
                 <button
                   type="button"
@@ -1212,12 +1233,12 @@ export function OnboardingWizard({
                         <span>
                           Q{idx + 1} · {qr.subjectTag} ({qr.topicTag})
                         </span>
-                        <span className={qr.correct ? 'text-[#77764B]' : 'text-[#D77B43]'}>
+                        <span className={qr.correct ? 'text-[#61603B]' : 'text-[#A34E1D]'}>
                           {qr.correct ? 'Correct' : 'Needs Review'}
                         </span>
                       </div>
                       <p className="mt-1 text-[#24231F]/85">{qr.prompt}</p>
-                      <p className="mt-1 text-[#89877F]">
+                      <p className="mt-1 text-[#636159]">
                         Your answer: <strong>{qr.submittedAnswer}</strong> · Correct:{' '}
                         <strong>{qr.correctAnswer}</strong>
                       </p>

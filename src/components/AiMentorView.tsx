@@ -182,7 +182,7 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl text-[#24231F]">AI Learning Mentor</h1>
-          <p className="text-sm text-[#89877F] mt-1">
+          <p className="text-sm text-[#636159] mt-1">
             Accurate multi-turn tutor anchored to your {domainMeta.name} ({dashboard.profile.courseName}) context — answers any question clearly.
           </p>
         </div>
@@ -192,7 +192,7 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
             type="button"
             disabled={clearing || sending}
             onClick={handleClearHistory}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E3D8] bg-[#FDFBF6] px-3 py-2 text-xs font-semibold text-[#89877F] hover:text-[#24231F] cursor-pointer self-start sm:self-auto whitespace-nowrap shrink-0"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E3D8] bg-[#FDFBF6] px-3 py-2 text-xs font-semibold text-[#636159] hover:text-[#24231F] cursor-pointer self-start sm:self-auto whitespace-nowrap shrink-0"
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{clearing ? 'Clearing…' : 'New Conversation'}</span>
@@ -210,30 +210,30 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
             </h2>
             <div className="space-y-2 text-xs">
               <div>
-                <span className="text-[#89877F]">Course &amp; Domain: </span>
+                <span className="text-[#636159]">Course &amp; Domain: </span>
                 <strong className="text-[#24231F]">
                   {dashboard.profile.courseName} · {domainMeta.name}
                 </strong>
               </div>
               <div>
-                <span className="text-[#89877F]">Target Plan: </span>
+                <span className="text-[#636159]">Target Plan: </span>
                 <strong className="text-[#24231F]">{dashboard.career.title}</strong>
               </div>
               {dashboard.entryAssessment && (
                 <div>
-                  <span className="text-[#89877F]">Entry Diagnostic: </span>
-                  <strong className="text-[#77764B] tabular-nums">
+                  <span className="text-[#636159]">Entry Diagnostic: </span>
+                  <strong className="text-[#61603B] tabular-nums">
                     {dashboard.entryAssessment.scorePercent}% ({dashboard.entryAssessment.skillLevel})
                   </strong>
                 </div>
               )}
               <div>
-                <span className="text-[#89877F]">Active Roadmap Step: </span>
+                <span className="text-[#636159]">Active Roadmap Step: </span>
                 <strong className="text-[#24231F]">{activeStep?.skillName ?? 'None'}</strong>
               </div>
               <div>
-                <span className="text-[#89877F]">Priority Revision Topics: </span>
-                <strong className="text-[#D77B43]">
+                <span className="text-[#636159]">Priority Revision Topics: </span>
+                <strong className="text-[#A34E1D]">
                   {weakConcepts.length > 0 ? weakConcepts.slice(0, 4).join(', ') : 'None flagged yet'}
                 </strong>
               </div>
@@ -243,11 +243,12 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
               <div className="text-xs font-semibold text-[#24231F] mb-2">
                 Response Style
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" role="group" aria-label="AI Mentor response style">
                 {HINT_MODES.map((mode) => (
                   <button
                     key={mode.level}
                     type="button"
+                    aria-pressed={hintLevel === mode.level}
                     onClick={() => setHintLevel(mode.level)}
                     className={`w-full text-left rounded-lg border px-3 py-2 text-xs transition-colors cursor-pointer ${
                       hintLevel === mode.level
@@ -256,7 +257,7 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
                     }`}
                   >
                     <div className="font-semibold">{mode.label}</div>
-                    <div className="text-[11px] text-[#89877F]">{mode.description}</div>
+                    <div className="text-[11px] text-[#636159]">{mode.description}</div>
                   </button>
                 ))}
               </div>
@@ -301,25 +302,33 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
         </aside>
 
         {/* Chat Thread */}
-        <section className="lg:col-span-8 rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] flex flex-col min-h-[560px] max-h-[78vh]">
+        <section
+          aria-label="AI Mentor chat session"
+          className="lg:col-span-8 rounded-2xl border border-[#E8E3D8] bg-[#FDFBF6] flex flex-col min-h-[560px] max-h-[78vh]"
+        >
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E8E3D8] px-5 py-3.5 text-xs">
             <span className="font-semibold text-[#24231F]">
               Mentor Session · {HINT_LABEL_MAP[hintLevel]}
             </span>
-            <span className="text-[#89877F]">
+            <span className="text-[#636159]">
               {aiConfigured === false
                 ? 'Configure GEMINI_API_KEY in AI Studio Settings > Secrets'
                 : 'Gemini Multi-Turn Tutoring'}
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div
+            role="log"
+            aria-live="polite"
+            aria-label="AI Mentor conversation"
+            className="flex-1 overflow-y-auto p-5 space-y-4"
+          >
             {messages.length === 0 ? (
               <div className="rounded-xl border border-[#E8E3D8] bg-white p-5 text-sm text-[#24231F]/85 space-y-2">
                 <p>
                   Ask any question about <strong>{dashboard.profile.courseName}</strong>, coding, math, science, case studies, or general concepts.
                 </p>
-                <p className="text-xs text-[#89877F]">
+                <p className="text-xs text-[#636159]">
                   By default, NEXORA gives direct, accurate answers with formatted code and examples. Switch to Conceptual Clue or Guided Steps anytime on the left if you want hints first.
                 </p>
               </div>
@@ -336,7 +345,7 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
                         : 'border border-[#E8E3D8] bg-white text-[#24231F]'
                     }`}
                   >
-                    <div className="text-[11px] font-semibold text-[#89877F] mb-1.5">
+                    <div className="text-[11px] font-semibold text-[#636159] mb-1.5">
                       {m.role === 'user'
                         ? 'You'
                         : `NEXORA Mentor · ${HINT_LABEL_MAP[(m.hintLevel as 1 | 2 | 3 | 4) || 4] ?? 'Direct Answer'}`}
@@ -352,8 +361,8 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
             )}
 
             {sending && (
-              <div className="flex justify-start">
-                <div className="rounded-2xl border border-[#E8E3D8] bg-white px-4 py-3 text-xs text-[#77764B] font-medium">
+              <div className="flex justify-start" role="status" aria-live="polite">
+                <div className="rounded-2xl border border-[#E8E3D8] bg-white px-4 py-3 text-xs text-[#61603B] font-medium">
                   Generating accurate response…
                 </div>
               </div>
@@ -391,9 +400,12 @@ export function AiMentorView({ dashboard }: AiMentorViewProps) {
             }}
             className="border-t border-[#E8E3D8] p-4 flex items-center gap-3"
           >
+            <label htmlFor="mentor-question-input" className="sr-only">
+              Ask AI Mentor a question
+            </label>
             <input
+              id="mentor-question-input"
               type="text"
-              aria-label="Ask AI Mentor"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={`Ask any question about ${dashboard.profile.courseName} or any topic…`}

@@ -81,7 +81,7 @@ export function ProjectsView({ dashboard, onUpdated }: ProjectsViewProps) {
         <h1 className="font-serif text-3xl text-[#24231F]">
           {supportsGitHub ? 'Projects & GitHub Intelligence' : domainMeta.artifactLabel}
         </h1>
-        <p className="text-sm text-[#89877F] mt-1">
+        <p className="text-sm text-[#636159] mt-1">
           {supportsGitHub
             ? 'Submit public GitHub repositories for safe metadata inspection. Private network URLs are blocked, repository code is never executed, and detected stack items serve as potential evidence only.'
             : `Document case analyses, clinical logs, financial audits, legal briefs, or research syntheses in ${domainMeta.name} (${dashboard.profile.courseName}) as applied learning artifacts.`}
@@ -99,7 +99,7 @@ export function ProjectsView({ dashboard, onUpdated }: ProjectsViewProps) {
               <span>Analyze Public GitHub Repository</span>
             </div>
 
-            <div className="rounded-xl border border-[#E8E3D8] bg-white p-3 text-xs text-[#89877F] flex items-start gap-2">
+            <div className="rounded-xl border border-[#E8E3D8] bg-white p-3 text-xs text-[#636159] flex items-start gap-2">
               <ShieldCheck className="h-4 w-4 text-[#77764B] shrink-0 mt-0.5" aria-hidden="true" />
               <span>
                 Enforces HTTPS github.com URLs, blocks localhost/private IP ranges, applies timeouts,
@@ -273,7 +273,7 @@ export function ProjectsView({ dashboard, onUpdated }: ProjectsViewProps) {
             {supportsGitHub ? 'Submitted Projects' : 'Submitted Academic & Portfolio Artifacts'}
           </h2>
           {dashboard.projects.length === 0 ? (
-            <p className="text-sm text-[#89877F]">
+            <p className="text-sm text-[#636159]">
               No submissions logged yet. Add an artifact on the left to record applied evidence in
               SkillProof.
             </p>
@@ -289,7 +289,7 @@ export function ProjectsView({ dashboard, onUpdated }: ProjectsViewProps) {
                     <span className="text-xs font-semibold text-[#77764B]">{p.reviewStatus}</span>
                   </div>
                   <p className="text-xs text-[#24231F]/80">{p.description}</p>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-[#89877F]">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-[#636159]">
                     <span>Competency: {p.skillId.toUpperCase()}</span>
                     {p.detectedStack.length > 0 && (
                       <>
@@ -313,7 +313,7 @@ export function ProjectsView({ dashboard, onUpdated }: ProjectsViewProps) {
                     )}
                   </div>
                   {p.reviewerNotes && (
-                    <div className="text-[11px] text-[#89877F] border-t border-[#E8E3D8]/60 pt-2">
+                    <div className="text-[11px] text-[#636159] border-t border-[#E8E3D8]/60 pt-2">
                       {p.reviewerNotes}
                     </div>
                   )}
